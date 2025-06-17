@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		387FF2612E014C5D00E2EB64 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 387FF24B2E014C5D00E2EB64 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 387FF2522E014C5D00E2EB64;
+			remoteInfo = "mic-for-mac";
+		};
+		387FF26B2E014C5D00E2EB64 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 387FF24B2E014C5D00E2EB64 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 387FF2522E014C5D00E2EB64;
+			remoteInfo = "mic-for-mac";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		387FF2532E014C5D00E2EB64 /* mic-for-mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "mic-for-mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		387FF2602E014C5D00E2EB64 /* mic-for-macTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "mic-for-macTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		387FF26A2E014C5D00E2EB64 /* mic-for-macUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "mic-for-macUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		387FF2552E014C5D00E2EB64 /* mic-for-mac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "mic-for-mac";
+			sourceTree = "<group>";
+		};
+		387FF2632E014C5D00E2EB64 /* mic-for-macTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "mic-for-macTests";
+			sourceTree = "<group>";
+		};
+		387FF26D2E014C5D00E2EB64 /* mic-for-macUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "mic-for-macUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		387FF2502E014C5D00E2EB64 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF25D2E014C5D00E2EB64 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF2672E014C5D00E2EB64 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		387FF24A2E014C5D00E2EB64 = {
+			isa = PBXGroup;
+			children = (
+				387FF2552E014C5D00E2EB64 /* mic-for-mac */,
+				387FF2632E014C5D00E2EB64 /* mic-for-macTests */,
+				387FF26D2E014C5D00E2EB64 /* mic-for-macUITests */,
+				387FF2542E014C5D00E2EB64 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		387FF2542E014C5D00E2EB64 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				387FF2532E014C5D00E2EB64 /* mic-for-mac.app */,
+				387FF2602E014C5D00E2EB64 /* mic-for-macTests.xctest */,
+				387FF26A2E014C5D00E2EB64 /* mic-for-macUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		387FF2522E014C5D00E2EB64 /* mic-for-mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 387FF2742E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-mac" */;
+			buildPhases = (
+				387FF24F2E014C5D00E2EB64 /* Sources */,
+				387FF2502E014C5D00E2EB64 /* Frameworks */,
+				387FF2512E014C5D00E2EB64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				387FF2552E014C5D00E2EB64 /* mic-for-mac */,
+			);
+			name = "mic-for-mac";
+			packageProductDependencies = (
+			);
+			productName = "mic-for-mac";
+			productReference = 387FF2532E014C5D00E2EB64 /* mic-for-mac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		387FF25F2E014C5D00E2EB64 /* mic-for-macTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 387FF2772E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-macTests" */;
+			buildPhases = (
+				387FF25C2E014C5D00E2EB64 /* Sources */,
+				387FF25D2E014C5D00E2EB64 /* Frameworks */,
+				387FF25E2E014C5D00E2EB64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				387FF2622E014C5D00E2EB64 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				387FF2632E014C5D00E2EB64 /* mic-for-macTests */,
+			);
+			name = "mic-for-macTests";
+			packageProductDependencies = (
+			);
+			productName = "mic-for-macTests";
+			productReference = 387FF2602E014C5D00E2EB64 /* mic-for-macTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		387FF2692E014C5D00E2EB64 /* mic-for-macUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 387FF27A2E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-macUITests" */;
+			buildPhases = (
+				387FF2662E014C5D00E2EB64 /* Sources */,
+				387FF2672E014C5D00E2EB64 /* Frameworks */,
+				387FF2682E014C5D00E2EB64 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				387FF26C2E014C5D00E2EB64 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				387FF26D2E014C5D00E2EB64 /* mic-for-macUITests */,
+			);
+			name = "mic-for-macUITests";
+			packageProductDependencies = (
+			);
+			productName = "mic-for-macUITests";
+			productReference = 387FF26A2E014C5D00E2EB64 /* mic-for-macUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		387FF24B2E014C5D00E2EB64 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					387FF2522E014C5D00E2EB64 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					387FF25F2E014C5D00E2EB64 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 387FF2522E014C5D00E2EB64;
+					};
+					387FF2692E014C5D00E2EB64 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 387FF2522E014C5D00E2EB64;
+					};
+				};
+			};
+			buildConfigurationList = 387FF24E2E014C5D00E2EB64 /* Build configuration list for PBXProject "mic-for-mac" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 387FF24A2E014C5D00E2EB64;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 387FF2542E014C5D00E2EB64 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				387FF2522E014C5D00E2EB64 /* mic-for-mac */,
+				387FF25F2E014C5D00E2EB64 /* mic-for-macTests */,
+				387FF2692E014C5D00E2EB64 /* mic-for-macUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		387FF2512E014C5D00E2EB64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF25E2E014C5D00E2EB64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF2682E014C5D00E2EB64 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		387FF24F2E014C5D00E2EB64 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF25C2E014C5D00E2EB64 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		387FF2662E014C5D00E2EB64 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		387FF2622E014C5D00E2EB64 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 387FF2522E014C5D00E2EB64 /* mic-for-mac */;
+			targetProxy = 387FF2612E014C5D00E2EB64 /* PBXContainerItemProxy */;
+		};
+		387FF26C2E014C5D00E2EB64 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 387FF2522E014C5D00E2EB64 /* mic-for-mac */;
+			targetProxy = 387FF26B2E014C5D00E2EB64 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		387FF2722E014C5D00E2EB64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		387FF2732E014C5D00E2EB64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		387FF2752E014C5D00E2EB64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		387FF2762E014C5D00E2EB64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		387FF2782E014C5D00E2EB64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-macTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mic-for-mac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mic-for-mac";
+			};
+			name = Debug;
+		};
+		387FF2792E014C5D00E2EB64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-macTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mic-for-mac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mic-for-mac";
+			};
+			name = Release;
+		};
+		387FF27B2E014C5D00E2EB64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-macUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "mic-for-mac";
+			};
+			name = Debug;
+		};
+		387FF27C2E014C5D00E2EB64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3ALVZ39DWW;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.reokosaka.mic-for-macUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "mic-for-mac";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		387FF24E2E014C5D00E2EB64 /* Build configuration list for PBXProject "mic-for-mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				387FF2722E014C5D00E2EB64 /* Debug */,
+				387FF2732E014C5D00E2EB64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		387FF2742E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				387FF2752E014C5D00E2EB64 /* Debug */,
+				387FF2762E014C5D00E2EB64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		387FF2772E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-macTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				387FF2782E014C5D00E2EB64 /* Debug */,
+				387FF2792E014C5D00E2EB64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		387FF27A2E014C5D00E2EB64 /* Build configuration list for PBXNativeTarget "mic-for-macUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				387FF27B2E014C5D00E2EB64 /* Debug */,
+				387FF27C2E014C5D00E2EB64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 387FF24B2E014C5D00E2EB64 /* Project object */;
+}
