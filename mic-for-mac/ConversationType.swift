@@ -1,6 +1,6 @@
 import Foundation
 
-enum ConversationType: String, CaseIterable, Identifiable {
+enum ConversationType: String, CaseIterable, Identifiable, Codable {
     case personal = "personal"
     case couple = "couple"
     case veterinary = "veterinary"
@@ -128,7 +128,7 @@ enum ConversationType: String, CaseIterable, Identifiable {
     }
 }
 
-enum Language: String, CaseIterable, Identifiable {
+enum Language: String, CaseIterable, Identifiable, Codable {
     case english = "en"
     case japanese = "ja"
     

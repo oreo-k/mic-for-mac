@@ -28,7 +28,7 @@ class APIService: ObservableObject {
     }
     
     // MARK: - Whisper Transcription
-    func transcribeWithWhisper(audioURL: URL) async throws -> TranscriptionResult {
+    func transcribeWithWhisper(audioURL: URL, language: Language) async throws -> TranscriptionResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
@@ -57,10 +57,10 @@ class APIService: ObservableObject {
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
         body.append("whisper-1\r\n".data(using: .utf8)!)
         
-        // Add language parameter (optional, for better accuracy)
+        // Add language parameter based on selected language
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"language\"\r\n\r\n".data(using: .utf8)!)
-        body.append("en\r\n".data(using: .utf8)!)
+        body.append("\(language.rawValue)\r\n".data(using: .utf8)!)
         
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
@@ -86,18 +86,18 @@ class APIService: ObservableObject {
     }
     
     // MARK: - GPT Summarization
-    func summarizeWithGPT(transcript: String, conversationType: ConversationType) async throws -> SummarizationResult {
+    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language) async throws -> SummarizationResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
         
-        // Use the appropriate prompt based on conversation type
-        let prompt = conversationType.userPrompt.replacingOccurrences(of: "{transcript}", with: transcript)
+        // Use the appropriate prompt based on conversation type and language
+        let prompt = conversationType.userPrompt(language: language).replacingOccurrences(of: "{transcript}", with: transcript)
         
         let requestBody = GPTRequest(
             model: "gpt-3.5-turbo",
             messages: [
-                GPTMessage(role: "system", content: conversationType.systemPrompt),
+                GPTMessage(role: "system", content: conversationType.systemPrompt(language: language)),
                 GPTMessage(role: "user", content: prompt)
             ],
             max_tokens: 500,

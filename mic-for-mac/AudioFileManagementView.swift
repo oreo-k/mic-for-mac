@@ -1,337 +1,192 @@
 import SwiftUI
 
 struct AudioFileManagementView: View {
-    @StateObject private var audioFileManager = AudioFileManager()
-    @State private var showingDeleteAllAlert = false
-    @State private var showingDeleteAlert = false
-    @State private var audioFileToDelete: AudioFileManager.AudioFile?
-    @State private var expandedFiles: Set<String> = []
+    @StateObject private var fileManager = AudioFileManager()
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
             VStack {
-                if audioFileManager.audioFiles.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "waveform")
+                if fileManager.audioFiles.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "folder")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        Text("No recorded audio files")
+                        
+                        Text("No recordings yet")
                             .font(.title2)
-                            .foregroundColor(.gray)
-                        Text("Record some audio to see files here")
-                            .font(.body)
+                            .fontWeight(.medium)
+                        
+                        Text("Your recordings will appear here")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    VStack(spacing: 0) {
-                        // Cost Summary Section
-                        if audioFileManager.filesWithCostData > 0 {
-                            CostSummaryView(audioFileManager: audioFileManager)
-                                .padding()
-                                .background(Color(.secondarySystemBackground))
+                    List {
+                        ForEach(fileManager.audioFiles) { audioFile in
+                            AudioFileRow(audioFile: audioFile)
                         }
-                        
-                        // Files List
-                        List {
-                            ForEach(audioFileManager.audioFiles) { audioFile in
-                                AudioFileRow(
-                                    audioFile: audioFile, 
-                                    audioFileManager: audioFileManager,
-                                    isExpanded: expandedFiles.contains(audioFile.name)
-                                ) {
-                                    // Toggle expansion
-                                    if expandedFiles.contains(audioFile.name) {
-                                        expandedFiles.remove(audioFile.name)
-                                    } else {
-                                        expandedFiles.insert(audioFile.name)
-                                    }
-                                } onDelete: {
-                                    audioFileToDelete = audioFile
-                                    showingDeleteAlert = true
-                                }
-                            }
-                        }
+                        .onDelete(perform: deleteFiles)
                     }
                 }
             }
-            .navigationTitle("Audio Files")
+            .navigationTitle("Recordings")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Delete All") {
-                        showingDeleteAllAlert = true
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Done") {
+                        dismiss()
                     }
-                    .disabled(audioFileManager.audioFiles.isEmpty)
                 }
                 
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Refresh") {
-                        audioFileManager.loadAudioFiles()
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Clear All") {
+                        fileManager.clearAllFiles()
                     }
+                    .foregroundColor(.red)
                 }
             }
-            .alert("Delete All Files", isPresented: $showingDeleteAllAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete All", role: .destructive) {
-                    audioFileManager.deleteAllAudioFiles()
-                }
-            } message: {
-                Text("Are you sure you want to delete all recorded audio files? This action cannot be undone.")
-            }
-            .alert("Delete File", isPresented: $showingDeleteAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    if let audioFile = audioFileToDelete {
-                        audioFileManager.deleteAudioFile(audioFile)
-                    }
-                }
-            } message: {
-                if let audioFile = audioFileToDelete {
-                    Text("Are you sure you want to delete '\(audioFile.name)'? This action cannot be undone.")
-                }
-            }
-        }
-        .onAppear {
-            audioFileManager.loadAudioFiles()
         }
     }
-}
-
-struct CostSummaryView: View {
-    let audioFileManager: AudioFileManager
     
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: "dollarsign.circle.fill")
-                    .foregroundColor(.green)
-                Text("Cost Summary")
-                    .font(.headline)
-                Spacer()
-            }
-            
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Total Cost")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(audioFileManager.formatTotalCost(audioFileManager.totalCost))
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Files Processed")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("\(audioFileManager.filesWithCostData)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Total Duration")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(audioFileManager.formatDuration(audioFileManager.totalDuration))
-                        .font(.title2)
-                        .fontWeight(.bold)
-                }
-            }
-        }
+    private func deleteFiles(offsets: IndexSet) {
+        fileManager.deleteFiles(at: offsets)
     }
 }
 
 struct AudioFileRow: View {
-    let audioFile: AudioFileManager.AudioFile
-    let audioFileManager: AudioFileManager
-    let isExpanded: Bool
-    let onToggle: () -> Void
-    let onDelete: () -> Void
+    let audioFile: AudioFile
+    @State private var isExpanded = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header with file info and actions
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(audioFile.name)
+                    Text(audioFile.filename)
                         .font(.headline)
                         .lineLimit(1)
                     
-                    HStack {
-                        Text(audioFileManager.formatDate(audioFile.dateCreated))
+                    HStack(spacing: 8) {
+                        Label(audioFile.formattedDate, systemImage: "calendar")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        
-                        Text(audioFileManager.formatFileSize(audioFile.fileSize))
+                        Label(audioFile.formattedDuration, systemImage: "clock")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
-                        if let duration = audioFile.duration {
-                            Text("•")
-                                .foregroundColor(.secondary)
-                            
-                            Text(audioFileManager.formatDuration(duration))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        if let conversationType = audioFile.conversationType {
-                            Text("•")
-                                .foregroundColor(.secondary)
-                            
-                            HStack(spacing: 2) {
-                                Image(systemName: conversationType.icon)
-                                    .font(.caption2)
-                                    .foregroundColor(.blue)
-                                Text(conversationType.displayName)
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                            }
-                        }
                     }
                 }
                 
                 Spacer()
                 
-                HStack(spacing: 8) {
-                    // Expand/Collapse button
-                    if audioFile.hasTranscript || audioFile.hasSummary {
-                        Button(action: onToggle) {
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .foregroundColor(.blue)
-                                .font(.caption)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(audioFile.formattedCost)
+                        .font(.headline)
+                        .foregroundColor(.blue)
                     
-                    // Delete button
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    Text("\(audioFile.tokenCount) tokens")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             
-            // Cost Information
-            if audioFile.hasCostData {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Image(systemName: "dollarsign.circle")
-                            .foregroundColor(.green)
-                            .font(.caption)
-                        Text("API Costs")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.green)
-                        Spacer()
-                    }
-                    
-                    HStack(spacing: 16) {
-                        if let transcriptionCost = audioFile.transcriptionCost {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Transcription")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                Text(audioFileManager.formatCost(transcriptionCost))
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                        }
-                        
-                        if let summarizationCost = audioFile.summarizationCost {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Summarization")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                Text(audioFileManager.formatCost(summarizationCost))
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("Total")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            Text(audioFileManager.formatCost(audioFile.totalCost))
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.green)
-                        }
-                    }
-                }
-                .padding(.top, 4)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(Color(.tertiarySystemBackground))
-                .cornerRadius(6)
+            // Conversation Type and Language
+            HStack(spacing: 12) {
+                Label(audioFile.conversationType.displayName, systemImage: audioFile.conversationType.icon)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+                
+                Label(audioFile.language.displayName, systemImage: "globe")
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(8)
             }
             
             // Expandable Content
             if isExpanded {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Transcript Section
-                    if let transcript = audioFile.transcript, !transcript.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Image(systemName: "text.bubble")
-                                    .foregroundColor(.blue)
-                                    .font(.caption)
-                                Text("Transcript")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.blue)
-                                Spacer()
-                            }
-                            
-                            Text(transcript)
-                                .font(.body)
-                                .padding()
-                                .background(Color(.secondarySystemBackground))
-                                .cornerRadius(8)
+                VStack(alignment: .leading, spacing: 16) {
+                    // Cost Breakdown
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Cost Breakdown")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        HStack {
+                            Text("Transcription:")
+                            Spacer()
+                            Text(audioFile.formattedTranscriptionCost)
+                                .foregroundColor(.secondary)
                         }
+                        .font(.caption)
+                        
+                        HStack {
+                            Text("Summarization:")
+                            Spacer()
+                            Text(audioFile.formattedSummarizationCost)
+                                .foregroundColor(.secondary)
+                        }
+                        .font(.caption)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    
+                    // Transcript
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Transcript")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text(audioFile.transcript)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(8)
                     }
                     
-                    // Summary Section
-                    if let summary = audioFile.summary, !summary.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Image(systemName: "doc.text")
-                                    .foregroundColor(.purple)
-                                    .font(.caption)
-                                Text("Summary")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.purple)
-                                Spacer()
-                            }
-                            
-                            Text(summary)
-                                .font(.body)
-                                .padding()
-                                .background(Color(.secondarySystemBackground))
-                                .cornerRadius(8)
-                        }
+                    // Summary
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Summary")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text(audioFile.summary)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(8)
                     }
                 }
-                .padding(.top, 8)
-                .transition(.opacity.combined(with: .move(edge: .top)))
             }
+            
+            // Expand/Collapse Button
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Text(isExpanded ? "Show Less" : "Show More")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
         }
-        .padding(.vertical, 4)
-        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+        .padding(.vertical, 8)
     }
 }
 
