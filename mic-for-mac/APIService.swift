@@ -86,24 +86,18 @@ class APIService: ObservableObject {
     }
     
     // MARK: - GPT Summarization
-    func summarizeWithGPT(transcript: String) async throws -> SummarizationResult {
+    func summarizeWithGPT(transcript: String, conversationType: ConversationType) async throws -> SummarizationResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
         
-        let prompt = """
-        Please provide a concise medical summary of this veterinary consultation transcript. 
-        Focus on key findings, diagnoses, treatment recommendations, and follow-up instructions.
-        Format the summary in a clear, professional manner suitable for medical records.
-        
-        Transcript:
-        \(transcript)
-        """
+        // Use the appropriate prompt based on conversation type
+        let prompt = conversationType.userPrompt.replacingOccurrences(of: "{transcript}", with: transcript)
         
         let requestBody = GPTRequest(
             model: "gpt-3.5-turbo",
             messages: [
-                GPTMessage(role: "system", content: "You are a veterinary assistant helping to summarize consultation notes."),
+                GPTMessage(role: "system", content: conversationType.systemPrompt),
                 GPTMessage(role: "user", content: prompt)
             ],
             max_tokens: 500,

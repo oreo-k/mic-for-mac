@@ -15,6 +15,7 @@ class AudioFileManager: ObservableObject {
         let summarizationCost: Double? // Cost in USD
         let transcript: String? // Full transcript text
         let summary: String? // Full summary text
+        let conversationType: ConversationType? // Type of conversation
         
         init(url: URL) {
             self.url = url
@@ -29,6 +30,13 @@ class AudioFileManager: ObservableObject {
             self.summarizationCost = UserDefaults.standard.object(forKey: "summarization_cost_\(fileKey)") as? Double
             self.transcript = UserDefaults.standard.string(forKey: "transcript_\(fileKey)")
             self.summary = UserDefaults.standard.string(forKey: "summary_\(fileKey)")
+            
+            // Get conversation type
+            if let typeString = UserDefaults.standard.string(forKey: "conversation_type_\(fileKey)") {
+                self.conversationType = ConversationType(rawValue: typeString)
+            } else {
+                self.conversationType = nil
+            }
         }
         
         var totalCost: Double {
@@ -75,6 +83,7 @@ class AudioFileManager: ObservableObject {
             UserDefaults.standard.removeObject(forKey: "summarization_cost_\(fileKey)")
             UserDefaults.standard.removeObject(forKey: "transcript_\(fileKey)")
             UserDefaults.standard.removeObject(forKey: "summary_\(fileKey)")
+            UserDefaults.standard.removeObject(forKey: "conversation_type_\(fileKey)")
             
             try FileManager.default.removeItem(at: audioFile.url)
             loadAudioFiles() // Reload the list
@@ -90,13 +99,14 @@ class AudioFileManager: ObservableObject {
     }
     
     // MARK: - Processing Data Storage
-    func saveProcessingData(for audioURL: URL, duration: TimeInterval, transcriptionCost: Double, summarizationCost: Double, transcript: String, summary: String) {
+    func saveProcessingData(for audioURL: URL, duration: TimeInterval, transcriptionCost: Double, summarizationCost: Double, transcript: String, summary: String, conversationType: ConversationType) {
         let fileKey = audioURL.lastPathComponent
         UserDefaults.standard.set(duration, forKey: "duration_\(fileKey)")
         UserDefaults.standard.set(transcriptionCost, forKey: "transcription_cost_\(fileKey)")
         UserDefaults.standard.set(summarizationCost, forKey: "summarization_cost_\(fileKey)")
         UserDefaults.standard.set(transcript, forKey: "transcript_\(fileKey)")
         UserDefaults.standard.set(summary, forKey: "summary_\(fileKey)")
+        UserDefaults.standard.set(conversationType.rawValue, forKey: "conversation_type_\(fileKey)")
         
         // Reload to update the UI
         loadAudioFiles()

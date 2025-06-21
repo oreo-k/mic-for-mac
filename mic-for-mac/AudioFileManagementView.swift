@@ -183,6 +183,20 @@ struct AudioFileRow: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
+                        
+                        if let conversationType = audioFile.conversationType {
+                            Text("•")
+                                .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 2) {
+                                Image(systemName: conversationType.icon)
+                                    .font(.caption2)
+                                    .foregroundColor(.blue)
+                                Text(conversationType.displayName)
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                 }
                 

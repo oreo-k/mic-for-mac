@@ -18,10 +18,35 @@ struct ContentView: View {
     @State private var isGeneratingSummary = false
     @State private var errorMessage: String?
     @State private var showingError = false
+    @State private var selectedConversationType: ConversationType = .veterinary
     
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
+                // Conversation Type Selector
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Conversation Type")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Picker("Conversation Type", selection: $selectedConversationType) {
+                        ForEach(ConversationType.allCases) { type in
+                            HStack {
+                                Image(systemName: type.icon)
+                                    .foregroundColor(.blue)
+                                Text(type.displayName)
+                            }
+                            .tag(type)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    
+                    Text(selectedConversationType.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                
                 Text(audioRecorder.isRecording ? "Recording..." : "Ready")
                     .font(.title)
                     .foregroundColor(audioRecorder.isRecording ? .red : .primary)
@@ -141,22 +166,26 @@ struct ContentView: View {
                 transcript = transcriptionResult.text
             }
             
-            // 2. Send transcript to GPT API
-            let summarizationResult = try await apiService.summarizeWithGPT(transcript: transcriptionResult.text)
+            // 2. Send transcript to GPT API with conversation type
+            let summarizationResult = try await apiService.summarizeWithGPT(
+                transcript: transcriptionResult.text,
+                conversationType: selectedConversationType
+            )
             
             await MainActor.run {
                 summary = summarizationResult.text
                 isGeneratingSummary = false
             }
             
-            // 3. Save processing data (cost, transcript, summary, duration)
+            // 3. Save processing data (cost, transcript, summary, duration, conversation type)
             audioFileManager.saveProcessingData(
                 for: audioURL,
                 duration: transcriptionResult.duration,
                 transcriptionCost: transcriptionResult.cost,
                 summarizationCost: summarizationResult.cost,
                 transcript: transcriptionResult.text,
-                summary: summarizationResult.text
+                summary: summarizationResult.text,
+                conversationType: selectedConversationType
             )
             
         } catch {
