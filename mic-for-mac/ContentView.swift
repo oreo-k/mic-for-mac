@@ -17,6 +17,11 @@ struct ContentView: View {
     @State private var selectedLanguage: Language = .english
     @State private var isShowingFileManager = false
     @State private var isShowingSettings = false
+    @State private var showingProcessingConfirmation = false
+    @State private var pendingRecordingURL: URL?
+    @State private var isProcessing = false
+    @State private var showingProcessingAlert = false
+    @State private var processingErrorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -37,6 +42,23 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView()
+        }
+        .alert("Process Recording", isPresented: $showingProcessingConfirmation) {
+            Button("Process Now") {
+                Task {
+                    await processRecording()
+                }
+            }
+            Button("Save for Later", role: .cancel) {
+                saveAsPending()
+            }
+        } message: {
+            Text("Would you like to process this recording now with Whisper and ChatGPT? This will incur API costs. You can also save it for later processing.")
+        }
+        .alert("Processing Error", isPresented: $showingProcessingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(processingErrorMessage)
         }
     }
     
@@ -145,6 +167,16 @@ struct ContentView: View {
                         .font(.headline)
                         .foregroundColor(.red)
                 }
+            } else if isProcessing {
+                VStack(spacing: 10) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .foregroundColor(.blue)
+                    
+                    Text("Processing Audio...")
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                }
             } else {
                 VStack(spacing: 10) {
                     Image(systemName: "mic.fill")
@@ -171,10 +203,16 @@ struct ContentView: View {
                 }
             }) {
                 HStack(spacing: 10) {
-                    Image(systemName: audioRecorder.isRecording ? "stop.fill" : "record.circle")
-                        .font(.title2)
+                    if isProcessing {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .foregroundColor(.white)
+                    } else {
+                        Image(systemName: audioRecorder.isRecording ? "stop.fill" : "record.circle")
+                            .font(.title2)
+                    }
                     
-                    Text(audioRecorder.isRecording ? "Stop Recording" : "Start Recording")
+                    Text(isProcessing ? "Processing..." : (audioRecorder.isRecording ? "Stop Recording" : "Start Recording"))
                         .font(.headline)
                 }
                 .foregroundColor(.white)
@@ -182,10 +220,11 @@ struct ContentView: View {
                 .frame(height: 50)
                 .background(
                     RoundedRectangle(cornerRadius: 25)
-                        .fill(audioRecorder.isRecording ? Color.red : Color.blue)
+                        .fill(isProcessing ? Color.gray : (audioRecorder.isRecording ? Color.red : Color.blue))
                 )
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(isProcessing)
         }
     }
     
@@ -238,6 +277,16 @@ struct ContentView: View {
         // Get the recording URL
         guard let recordingURL = audioRecorder.getAudioFileURL() else { return }
         
+        // Store the URL and show confirmation dialog
+        pendingRecordingURL = recordingURL
+        showingProcessingConfirmation = true
+    }
+    
+    private func processRecording() async {
+        guard let recordingURL = pendingRecordingURL else { return }
+        
+        isProcessing = true
+        
         do {
             // Transcribe with Whisper
             let transcriptionResult = try await apiService.transcribeWithWhisper(
@@ -269,9 +318,34 @@ struct ContentView: View {
             
             fileManager.addFile(audioFile)
             
+            // Clear the pending URL
+            pendingRecordingURL = nil
+            
         } catch {
-            print("Error processing recording: \(error)")
+            processingErrorMessage = error.localizedDescription
+            showingProcessingAlert = true
         }
+        
+        isProcessing = false
+    }
+    
+    private func saveAsPending() {
+        guard let recordingURL = pendingRecordingURL else { return }
+        
+        // Create a pending audio file
+        let pendingFile = AudioFile(
+            url: recordingURL,
+            filename: recordingURL.lastPathComponent,
+            date: Date(),
+            duration: 0.0, // We'll get the actual duration when processing
+            conversationType: selectedConversationType,
+            language: selectedLanguage
+        )
+        
+        fileManager.addFile(pendingFile)
+        
+        // Clear the pending URL
+        pendingRecordingURL = nil
     }
 }
 

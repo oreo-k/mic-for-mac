@@ -13,6 +13,39 @@ struct AudioFile: Identifiable, Codable {
     let transcriptionCost: Double
     let summarizationCost: Double
     let tokenCount: Int
+    let isPending: Bool
+    
+    // Initializer for processed files
+    init(url: URL, filename: String, date: Date, duration: TimeInterval, transcript: String, summary: String, conversationType: ConversationType, language: Language, transcriptionCost: Double, summarizationCost: Double, tokenCount: Int) {
+        self.url = url
+        self.filename = filename
+        self.date = date
+        self.duration = duration
+        self.transcript = transcript
+        self.summary = summary
+        self.conversationType = conversationType
+        self.language = language
+        self.transcriptionCost = transcriptionCost
+        self.summarizationCost = summarizationCost
+        self.tokenCount = tokenCount
+        self.isPending = false
+    }
+    
+    // Initializer for pending files (not yet processed)
+    init(url: URL, filename: String, date: Date, duration: TimeInterval, conversationType: ConversationType, language: Language) {
+        self.url = url
+        self.filename = filename
+        self.date = date
+        self.duration = duration
+        self.transcript = ""
+        self.summary = ""
+        self.conversationType = conversationType
+        self.language = language
+        self.transcriptionCost = 0.0
+        self.summarizationCost = 0.0
+        self.tokenCount = 0
+        self.isPending = true
+    }
     
     var totalCost: Double {
         transcriptionCost + summarizationCost
@@ -32,14 +65,23 @@ struct AudioFile: Identifiable, Codable {
     }
     
     var formattedCost: String {
-        String(format: "$%.4f", totalCost)
+        if isPending {
+            return "Pending"
+        }
+        return String(format: "$%.4f", totalCost)
     }
     
     var formattedTranscriptionCost: String {
-        String(format: "$%.4f", transcriptionCost)
+        if isPending {
+            return "Pending"
+        }
+        return String(format: "$%.4f", transcriptionCost)
     }
     
     var formattedSummarizationCost: String {
-        String(format: "$%.4f", summarizationCost)
+        if isPending {
+            return "Pending"
+        }
+        return String(format: "$%.4f", summarizationCost)
     }
 } 

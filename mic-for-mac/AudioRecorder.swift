@@ -55,7 +55,13 @@ class AudioRecorder: NSObject, ObservableObject {
     }
     
     private func getDocumentsDirectory() -> URL {
-        return FileManager.default.temporaryDirectory
+        let fileManager = FileManager.default
+        let docs = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let recordingsDir = docs.appendingPathComponent("mic-for-mac/Recordings", isDirectory: true)
+        if !fileManager.fileExists(atPath: recordingsDir.path) {
+            try? fileManager.createDirectory(at: recordingsDir, withIntermediateDirectories: true, attributes: nil)
+        }
+        return recordingsDir
     }
 }
 

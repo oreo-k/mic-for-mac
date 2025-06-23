@@ -135,7 +135,7 @@ class APIService: ObservableObject {
     }
     
     // MARK: - Helper Methods
-    private func getAudioDuration(from url: URL) async throws -> TimeInterval {
+    func getAudioDuration(from url: URL) async throws -> TimeInterval {
         // For now, we'll estimate duration based on file size
         // In a production app, you might want to use AVAsset to get exact duration
         let fileSize = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64 ?? 0

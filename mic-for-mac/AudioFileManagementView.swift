@@ -2,7 +2,11 @@ import SwiftUI
 
 struct AudioFileManagementView: View {
     @StateObject private var fileManager = AudioFileManager()
+    @StateObject private var apiService = APIService()
     @Environment(\.dismiss) private var dismiss
+    @State private var processingFileId: UUID?
+    @State private var showingProcessingAlert = false
+    @State private var processingErrorMessage = ""
     
     var body: some View {
         NavigationView {
@@ -23,11 +27,85 @@ struct AudioFileManagementView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List {
-                        ForEach(fileManager.audioFiles) { audioFile in
-                            AudioFileRow(audioFile: audioFile)
+                    // Summary Section
+                    VStack(spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Total Files")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(fileManager.audioFiles.count)")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .center, spacing: 4) {
+                                Text("Processed")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(fileManager.processedFilesCount)")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("Pending")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(fileManager.pendingFilesCount)")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.orange)
+                            }
                         }
-                        .onDelete(perform: deleteFiles)
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
+                        
+                        if fileManager.processedFilesCount > 0 {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Total Cost")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(fileManager.formatTotalCost())
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.blue)
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("Total Duration")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(fileManager.formatTotalDuration())
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                }
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    List {
+                        ForEach(Array(fileManager.audioFiles.enumerated()), id: \ .element.id) { index, audioFile in
+                            AudioFileRow(
+                                audioFile: audioFile,
+                                onProcess: { processAudioFile(audioFile) },
+                                isProcessing: processingFileId == audioFile.id,
+                                onDelete: { deleteFile(at: index) }
+                            )
+                        }
                     }
                 }
             }
@@ -47,16 +125,78 @@ struct AudioFileManagementView: View {
                     .foregroundColor(.red)
                 }
             }
+            .alert("Processing Error", isPresented: $showingProcessingAlert) {
+                Button("OK") { }
+            } message: {
+                Text(processingErrorMessage)
+            }
         }
     }
     
-    private func deleteFiles(offsets: IndexSet) {
-        fileManager.deleteFiles(at: offsets)
+    private func deleteFile(at index: Int) {
+        fileManager.deleteFiles(at: IndexSet(integer: index))
+    }
+    
+    private func processAudioFile(_ audioFile: AudioFile) {
+        guard audioFile.isPending else { return }
+        
+        processingFileId = audioFile.id
+        
+        Task {
+            do {
+                // Get actual audio duration
+                let actualDuration = try await apiService.getAudioDuration(from: audioFile.url)
+                
+                // Transcribe with Whisper
+                let transcriptionResult = try await apiService.transcribeWithWhisper(
+                    audioURL: audioFile.url,
+                    language: audioFile.language
+                )
+                
+                // Summarize with GPT
+                let summarizationResult = try await apiService.summarizeWithGPT(
+                    transcript: transcriptionResult.text,
+                    conversationType: audioFile.conversationType,
+                    language: audioFile.language
+                )
+                
+                // Create processed file
+                let processedFile = AudioFile(
+                    url: audioFile.url,
+                    filename: audioFile.filename,
+                    date: audioFile.date,
+                    duration: actualDuration,
+                    transcript: transcriptionResult.text,
+                    summary: summarizationResult.text,
+                    conversationType: audioFile.conversationType,
+                    language: audioFile.language,
+                    transcriptionCost: transcriptionResult.cost,
+                    summarizationCost: summarizationResult.cost,
+                    tokenCount: summarizationResult.tokenCount
+                )
+                
+                // Update the file in the manager
+                await MainActor.run {
+                    fileManager.updatePendingFile(with: processedFile)
+                    processingFileId = nil
+                }
+                
+            } catch {
+                await MainActor.run {
+                    processingErrorMessage = error.localizedDescription
+                    showingProcessingAlert = true
+                    processingFileId = nil
+                }
+            }
+        }
     }
 }
 
 struct AudioFileRow: View {
     let audioFile: AudioFile
+    let onProcess: () -> Void
+    let isProcessing: Bool
+    let onDelete: () -> Void
     @State private var isExpanded = false
     
     var body: some View {
@@ -64,9 +204,22 @@ struct AudioFileRow: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(audioFile.filename)
-                        .font(.headline)
-                        .lineLimit(1)
+                    HStack {
+                        Text(audioFile.filename)
+                            .font(.headline)
+                            .lineLimit(1)
+                        
+                        if audioFile.isPending {
+                            Text("PENDING")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.orange.opacity(0.2))
+                                .cornerRadius(4)
+                        }
+                    }
                     
                     HStack(spacing: 8) {
                         Label(audioFile.formattedDate, systemImage: "calendar")
@@ -84,12 +237,22 @@ struct AudioFileRow: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(audioFile.formattedCost)
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(audioFile.isPending ? .orange : .blue)
                     
-                    Text("\(audioFile.tokenCount) tokens")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if !audioFile.isPending {
+                        Text("\(audioFile.tokenCount) tokens")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                
+                // Trash button
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.leading, 8)
             }
             
             // Conversation Type and Language
@@ -109,8 +272,32 @@ struct AudioFileRow: View {
                     .cornerRadius(8)
             }
             
-            // Expandable Content
-            if isExpanded {
+            // Process Button for Pending Files
+            if audioFile.isPending {
+                Button(action: onProcess) {
+                    HStack {
+                        if isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "play.circle.fill")
+                        }
+                        Text(isProcessing ? "Processing..." : "Process Audio")
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(isProcessing ? Color.gray : Color.blue)
+                    )
+                }
+                .disabled(isProcessing)
+                .buttonStyle(PlainButtonStyle())
+            }
+            
+            // Expandable Content (only for processed files)
+            if !audioFile.isPending && isExpanded {
                 VStack(alignment: .leading, spacing: 16) {
                     // Cost Breakdown
                     VStack(alignment: .leading, spacing: 8) {
@@ -168,23 +355,25 @@ struct AudioFileRow: View {
                 }
             }
             
-            // Expand/Collapse Button
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    isExpanded.toggle()
+            // Expand/Collapse Button (only for processed files)
+            if !audioFile.isPending {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text(isExpanded ? "Show Less" : "Show More")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                        
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
                 }
-            }) {
-                HStack {
-                    Text(isExpanded ? "Show Less" : "Show More")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         }
         .padding(.vertical, 8)
     }

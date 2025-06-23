@@ -16,6 +16,13 @@ class AudioFileManager: ObservableObject {
         saveAudioFiles()
     }
     
+    func updatePendingFile(with processedFile: AudioFile) {
+        if let index = audioFiles.firstIndex(where: { $0.id == processedFile.id }) {
+            audioFiles[index] = processedFile
+            saveAudioFiles()
+        }
+    }
+    
     func deleteFiles(at offsets: IndexSet) {
         // Delete the actual files from disk
         for index in offsets {
@@ -61,7 +68,7 @@ class AudioFileManager: ObservableObject {
     
     // MARK: - Statistics
     var totalCost: Double {
-        audioFiles.reduce(0) { $0 + $1.totalCost }
+        audioFiles.filter { !$0.isPending }.reduce(0) { $0 + $1.totalCost }
     }
     
     var totalDuration: TimeInterval {
@@ -69,7 +76,15 @@ class AudioFileManager: ObservableObject {
     }
     
     var totalTokenCount: Int {
-        audioFiles.reduce(0) { $0 + $1.tokenCount }
+        audioFiles.filter { !$0.isPending }.reduce(0) { $0 + $1.tokenCount }
+    }
+    
+    var pendingFilesCount: Int {
+        audioFiles.filter { $0.isPending }.count
+    }
+    
+    var processedFilesCount: Int {
+        audioFiles.filter { !$0.isPending }.count
     }
     
     var filesByLanguage: [Language: Int] {
