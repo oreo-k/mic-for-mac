@@ -17,6 +17,7 @@ struct ContentView: View {
     @State private var selectedLanguage: Language = .english
     @State private var isShowingFileManager = false
     @State private var isShowingSettings = false
+    @State private var isShowingProfile = false
     @State private var showingProcessingConfirmation = false
     @State private var pendingRecordingURL: URL?
     @State private var isProcessing = false
@@ -42,6 +43,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $isShowingProfile) {
+            ProfileView()
         }
         .alert("Process Recording", isPresented: $showingProcessingConfirmation) {
             Button("Process Now") {
@@ -236,6 +240,23 @@ struct ContentView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "folder.fill")
                     Text("Files")
+                }
+                .foregroundColor(.blue)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 22)
+                        .stroke(Color.blue, lineWidth: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Button(action: {
+                isShowingProfile = true
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.circle.fill")
+                    Text("Profile")
                 }
                 .foregroundColor(.blue)
                 .frame(maxWidth: .infinity)
