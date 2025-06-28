@@ -70,11 +70,26 @@ struct DogProfileEditView: View {
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                         }
                         
-                        HStack {
-                            Text("Age:")
-                            TextField("Age", value: $dogProfile.age, format: .number)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Text("years")
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Date of Birth:")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            DatePicker(
+                                "Date of Birth",
+                                selection: $dogProfile.dateOfBirth,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(CompactDatePickerStyle())
+                            .labelsHidden()
+                            
+                            HStack {
+                                Text("Age:")
+                                    .foregroundColor(.secondary)
+                                Text(dogProfile.ageDescription)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         
                         HStack {
