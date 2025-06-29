@@ -86,13 +86,16 @@ class APIService: ObservableObject {
     }
     
     // MARK: - GPT Summarization
-    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language) async throws -> SummarizationResult {
+    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language, dogProfile: DogProfile? = nil, ownerProfile: OwnerProfile? = nil) async throws -> SummarizationResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
         
+        // Format profile information for the prompt
+        let profileInfo = conversationType.formatProfileInfo(dogProfile: dogProfile, ownerProfile: ownerProfile)
+        
         // Use the appropriate prompt based on conversation type and language
-        let prompt = conversationType.userPrompt(language: language).replacingOccurrences(of: "{transcript}", with: transcript)
+        let prompt = conversationType.userPrompt(language: language, profileInfo: profileInfo).replacingOccurrences(of: "{transcript}", with: transcript)
         
         let requestBody = GPTRequest(
             model: "gpt-3.5-turbo",
@@ -100,7 +103,7 @@ class APIService: ObservableObject {
                 GPTMessage(role: "system", content: conversationType.systemPrompt(language: language)),
                 GPTMessage(role: "user", content: prompt)
             ],
-            max_tokens: 500,
+            max_tokens: 800, // Increased for more detailed summaries
             temperature: 0.3
         )
         

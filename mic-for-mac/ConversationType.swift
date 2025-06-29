@@ -43,75 +43,147 @@ enum ConversationType: String, CaseIterable, Identifiable, Codable {
     func systemPrompt(language: Language) -> String {
         switch (self, language) {
         case (.personal, .english):
-            return "You are a helpful assistant helping to summarize personal notes and thoughts."
+            return "You are a thoughtful personal assistant helping to organize and summarize personal thoughts, observations, and daily activities. Focus on extracting actionable insights, important decisions, and meaningful patterns from personal reflections."
         case (.personal, .japanese):
-            return "あなたは個人のメモや考えを要約するのを手伝うアシスタントです。"
+            return "あなたは個人的な考え、観察、日常活動を整理し要約するのを手伝う思慮深いパーソナルアシスタントです。個人的な振り返りから実行可能な洞察、重要な決定、意味のあるパターンを抽出することに焦点を当ててください。"
         case (.couple, .english):
-            return "You are a helpful assistant helping to summarize conversations between partners."
+            return "You are a relationship communication assistant helping couples track important discussions, decisions, and shared goals. Focus on mutual understanding, joint decisions, and relationship-building moments."
         case (.couple, .japanese):
-            return "あなたはパートナー間の会話を要約するのを手伝うアシスタントです。"
+            return "あなたはカップルが重要な議論、決定、共有目標を追跡するのを手伝う関係コミュニケーションアシスタントです。相互理解、共同決定、関係構築の瞬間に焦点を当ててください。"
         case (.veterinary, .english):
-            return "You are a veterinary assistant helping to summarize consultation notes."
+            return "You are an expert veterinary assistant with deep knowledge of canine health and medical terminology. Your role is to create comprehensive, accurate medical summaries that help veterinarians make informed decisions and provide better care. Always consider the patient's medical history, current medications, and specific health context when analyzing consultation transcripts."
         case (.veterinary, .japanese):
-            return "あなたは獣医の診察記録を要約するのを手伝う獣医アシスタントです。"
+            return "あなたは犬の健康と医学用語に深い知識を持つ専門の獣医アシスタントです。獣医師が適切な判断を下し、より良いケアを提供できるよう、包括的で正確な医療要約を作成することがあなたの役割です。診察記録を分析する際は、常に患者の病歴、現在の投薬、および特定の健康コンテキストを考慮してください。"
         }
     }
     
-    func userPrompt(language: Language) -> String {
+    func userPrompt(language: Language, profileInfo: String = "") -> String {
         switch (self, language) {
         case (.personal, .english):
             return """
-            Please provide a concise summary of this personal speech or monologue. 
-            Focus on key points, important thoughts, decisions made, or action items mentioned.
-            Format the summary in a clear, organized manner suitable for personal reference.
+            Please analyze this personal speech/reflection and provide a comprehensive summary:
             
-            Transcript:
+            CONTEXT:
+            - Date: \(Date().formatted(date: .abbreviated, time: .omitted))
+            - Time: \(Date().formatted(date: .omitted, time: .shortened))
+            \(profileInfo.isEmpty ? "" : "\nPROFILE CONTEXT:\n\(profileInfo)")
+            
+            TRANSCRIPT:
             {transcript}
+            
+            Please provide:
+            1. **Key Insights**: Important thoughts or realizations
+            2. **Decisions Made**: Any decisions or commitments mentioned
+            3. **Action Items**: Tasks, goals, or next steps identified
+            4. **Emotional State**: Mood or emotional observations
+            5. **Patterns**: Recurring themes or concerns
+            6. **Priorities**: What seems most important to the speaker
+            
+            Format this as a personal reference document that can help with future planning and self-reflection.
             """
         case (.personal, .japanese):
             return """
-            この個人的なスピーチや独白の簡潔な要約を提供してください。
-            重要なポイント、重要な考え、決定された事項、または言及されたアクション項目に焦点を当ててください。
-            個人の参考に適した、明確で整理された形式で要約をフォーマットしてください。
+            この個人的なスピーチ/振り返りを分析し、包括的な要約を提供してください：
             
-            文字起こし:
+            コンテキスト：
+            - 日付：\(Date().formatted(date: .abbreviated, time: .omitted))
+            - 時間：\(Date().formatted(date: .omitted, time: .shortened))
+            \(profileInfo.isEmpty ? "" : "\nプロフィールコンテキスト：\n\(profileInfo)")
+            
+            文字起こし：
             {transcript}
+            
+            以下を提供してください：
+            1. **重要な洞察**：重要な考えや気づき
+            2. **決定された事項**：言及された決定や約束
+            3. **アクション項目**：特定されたタスク、目標、次のステップ
+            4. **感情状態**：気分や感情の観察
+            5. **パターン**：繰り返しのテーマや懸念
+            6. **優先事項**：話者にとって最も重要と思われること
+            
+            将来の計画と自己反省に役立つ個人参考文書としてフォーマットしてください。
             """
         case (.couple, .english):
             return """
-            Please provide a concise summary of this couple's conversation. 
-            Focus on key topics discussed, decisions made, plans mentioned, and important points for both partners.
-            Format the summary in a clear, organized manner suitable for relationship reference.
+            Please summarize this couple's conversation with attention to relationship dynamics:
             
-            Transcript:
+            \(profileInfo.isEmpty ? "" : "PROFILE CONTEXT:\n\(profileInfo)\n")
+            
+            TRANSCRIPT:
             {transcript}
+            
+            Please provide:
+            1. **Topics Discussed**: Main subjects and themes
+            2. **Decisions Made**: Joint decisions or agreements
+            3. **Plans Mentioned**: Future plans or commitments
+            4. **Concerns Raised**: Any worries or issues discussed
+            5. **Positive Moments**: Appreciation, support, or connection moments
+            6. **Action Items**: Tasks or follow-ups for either partner
+            7. **Communication Notes**: How well they communicated or areas for improvement
+            
+            Format this as a relationship reference that helps track progress and maintain shared understanding.
             """
         case (.couple, .japanese):
             return """
-            このカップルの会話の簡潔な要約を提供してください。
-            議論された主要なトピック、決定された事項、言及された計画、および両パートナーにとって重要なポイントに焦点を当ててください。
-            関係の参考に適した、明確で整理された形式で要約をフォーマットしてください。
+            関係性のダイナミクスに注意してこのカップルの会話を要約してください：
             
-            文字起こし:
+            \(profileInfo.isEmpty ? "" : "プロフィールコンテキスト：\n\(profileInfo)\n")
+            
+            文字起こし：
             {transcript}
+            
+            以下を提供してください：
+            1. **議論されたトピック**：主要な主題とテーマ
+            2. **決定された事項**：共同決定や合意
+            3. **言及された計画**：将来の計画や約束
+            4. **提起された懸念**：議論された心配や問題
+            5. **ポジティブな瞬間**：感謝、サポート、またはつながりの瞬間
+            6. **アクション項目**：どちらかのパートナーのタスクやフォローアップ
+            7. **コミュニケーションノート**：どれだけよくコミュニケーションしたか、または改善の領域
+            
+            進捗を追跡し、共有理解を維持するのに役立つ関係参考としてフォーマットしてください。
             """
         case (.veterinary, .english):
             return """
-            Please provide a concise medical summary of this veterinary consultation transcript. 
-            Focus on key findings, diagnoses, treatment recommendations, and follow-up instructions.
-            Format the summary in a clear, professional manner suitable for medical records.
+            Create a detailed veterinary consultation summary using the following information:
             
-            Transcript:
+            PATIENT PROFILE:
+            \(profileInfo.isEmpty ? "No profile information available" : profileInfo)
+            
+            CONSULTATION TRANSCRIPT:
             {transcript}
+            
+            Please provide a structured summary including:
+            1. **Chief Complaint**: Main reason for visit
+            2. **Clinical Findings**: Key observations and symptoms discussed
+            3. **Assessment**: Potential diagnoses or conditions mentioned
+            4. **Treatment Plan**: Medications, procedures, or recommendations
+            5. **Follow-up Instructions**: Next steps, monitoring, or recheck schedule
+            6. **Owner Education**: Important information shared with pet owner
+            7. **Action Items**: Specific tasks or decisions that need follow-up
+            
+            Format the summary professionally for medical records, highlighting any changes from previous visits and noting any concerns that require immediate attention.
             """
         case (.veterinary, .japanese):
             return """
-            この獣医診察の文字起こしの簡潔な医療要約を提供してください。
-            重要な所見、診断、治療推奨事項、およびフォローアップ指示に焦点を当ててください。
-            医療記録に適した、明確で専門的な形式で要約をフォーマットしてください。
+            以下の情報を使用して詳細な獣医診察要約を作成してください：
             
-            文字起こし:
+            患者プロフィール：
+            \(profileInfo.isEmpty ? "プロフィール情報が利用できません" : profileInfo)
+            
+            診察記録：
             {transcript}
+            
+            以下の構造化された要約を提供してください：
+            1. **主訴**：来院の主な理由
+            2. **臨床所見**：議論された主要な観察と症状
+            3. **評価**：言及された潜在的な診断または状態
+            4. **治療計画**：投薬、処置、または推奨事項
+            5. **フォローアップ指示**：次のステップ、モニタリング、または再検査スケジュール
+            6. **飼い主教育**：ペットの飼い主と共有された重要な情報
+            7. **アクション項目**：フォローアップが必要な特定のタスクまたは決定
+            
+            医療記録用に専門的にフォーマットし、前回の診察からの変更点を強調し、即座の注意が必要な懸念事項を記録してください。
             """
         }
     }
@@ -125,6 +197,70 @@ enum ConversationType: String, CaseIterable, Identifiable, Codable {
         case .veterinary:
             return "Select 'Veterinary Consultation' for doctor-pet owner conversations"
         }
+    }
+    
+    // MARK: - Profile Information Helper
+    func formatProfileInfo(dogProfile: DogProfile?, ownerProfile: OwnerProfile?) -> String {
+        var profileInfo = ""
+        
+        if let dog = dogProfile {
+            profileInfo += """
+            DOG INFORMATION:
+            - Name: \(dog.name.isEmpty ? "Not specified" : dog.name)
+            - Breed: \(dog.breed.isEmpty ? "Not specified" : dog.breed)
+            - Age: \(dog.ageDescription)
+            - Weight: \(dog.weight > 0 ? "\(dog.weight) lbs" : "Not specified")
+            - Color: \(dog.color.isEmpty ? "Not specified" : dog.color)
+            - Microchip: \(dog.microchipNumber.isEmpty ? "Not specified" : dog.microchipNumber)
+            """
+            
+            if !dog.currentMedications.isEmpty {
+                profileInfo += "\n- Current Medications:"
+                for med in dog.currentMedications where med.isActive {
+                    profileInfo += "\n  * \(med.name) - \(med.dosage) \(med.frequency)"
+                }
+            }
+            
+            if !dog.allergies.isEmpty {
+                profileInfo += "\n- Allergies: \(dog.allergies.joined(separator: ", "))"
+            }
+            
+            if !dog.specialNeeds.isEmpty {
+                profileInfo += "\n- Special Needs: \(dog.specialNeeds)"
+            }
+            
+            if !dog.medicalHistory.isEmpty {
+                profileInfo += "\n- Recent Medical History:"
+                let recentHistory = dog.medicalHistory.sorted { $0.date > $1.date }.prefix(3)
+                for record in recentHistory {
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateStyle = .short
+                    profileInfo += "\n  * \(dateFormatter.string(from: record.date)): \(record.diagnosis)"
+                }
+            }
+        }
+        
+        if let owner = ownerProfile {
+            if !profileInfo.isEmpty {
+                profileInfo += "\n\n"
+            }
+            profileInfo += """
+            OWNER INFORMATION:
+            - Name: \(owner.firstName.isEmpty && owner.lastName.isEmpty ? "Not specified" : "\(owner.firstName) \(owner.lastName)".trimmingCharacters(in: .whitespaces))
+            - Phone: \(owner.phone.isEmpty ? "Not specified" : owner.phone)
+            - Email: \(owner.email.isEmpty ? "Not specified" : owner.email)
+            """
+            
+            if !owner.preferredVeterinarian.isEmpty {
+                profileInfo += "\n- Preferred Veterinarian: \(owner.preferredVeterinarian)"
+            }
+            
+            if !owner.preferredClinic.isEmpty {
+                profileInfo += "\n- Preferred Clinic: \(owner.preferredClinic)"
+            }
+        }
+        
+        return profileInfo
     }
 }
 

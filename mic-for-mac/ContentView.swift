@@ -315,11 +315,18 @@ struct ContentView: View {
                 language: selectedLanguage
             )
             
-            // Summarize with GPT
+            // Get profile information for enhanced summaries
+            let profileManager = ProfileManager()
+            let dogProfile = profileManager.dogProfile
+            let ownerProfile = profileManager.ownerProfile
+            
+            // Summarize with GPT (including profile information)
             let summarizationResult = try await apiService.summarizeWithGPT(
                 transcript: transcriptionResult.text,
                 conversationType: selectedConversationType,
-                language: selectedLanguage
+                language: selectedLanguage,
+                dogProfile: dogProfile,
+                ownerProfile: ownerProfile
             )
             
             // Save file with metadata
