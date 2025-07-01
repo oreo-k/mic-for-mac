@@ -156,7 +156,7 @@ struct AudioFileManagementView: View {
                 // Get profile information for enhanced summaries
                 let profileManager = ProfileManager()
                 let dogProfile = profileManager.dogProfile
-                let ownerProfile = profileManager.ownerProfile
+                let multiOwnerProfile = profileManager.multiOwnerProfile
                 
                 // Summarize with GPT (including profile information)
                 let summarizationResult = try await apiService.summarizeWithGPT(
@@ -164,7 +164,7 @@ struct AudioFileManagementView: View {
                     conversationType: audioFile.conversationType,
                     language: audioFile.language,
                     dogProfile: dogProfile,
-                    ownerProfile: ownerProfile
+                    multiOwnerProfile: multiOwnerProfile
                 )
                 
                 // Create processed file
