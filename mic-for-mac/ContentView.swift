@@ -318,7 +318,7 @@ struct ContentView: View {
             // Get profile information for enhanced summaries
             let profileManager = ProfileManager()
             let dogProfile = profileManager.dogProfile
-            let ownerProfile = profileManager.ownerProfile
+            let multiOwnerProfile = profileManager.multiOwnerProfile
             
             // Summarize with GPT (including profile information)
             let summarizationResult = try await apiService.summarizeWithGPT(
@@ -326,7 +326,7 @@ struct ContentView: View {
                 conversationType: selectedConversationType,
                 language: selectedLanguage,
                 dogProfile: dogProfile,
-                ownerProfile: ownerProfile
+                multiOwnerProfile: multiOwnerProfile
             )
             
             // Save file with metadata

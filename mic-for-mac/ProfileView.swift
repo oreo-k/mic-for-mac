@@ -11,7 +11,7 @@ struct ProfileView: View {
                 // Tab Picker
                 Picker("Profile Type", selection: $selectedTab) {
                     Text("🐕 Dog Profile").tag(0)
-                    Text("👤 Owner Profile").tag(1)
+                    Text("👥 Owners").tag(1)
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
@@ -21,7 +21,7 @@ struct ProfileView: View {
                     DogProfileEditView(dogProfile: $profileManager.dogProfile)
                         .tag(0)
                     
-                    OwnerProfileEditView(ownerProfile: $profileManager.ownerProfile)
+                    MultiOwnerProfileView(multiOwnerProfile: $profileManager.multiOwnerProfile)
                         .tag(1)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -40,7 +40,7 @@ struct ProfileView: View {
                         if selectedTab == 0 {
                             profileManager.saveDogProfile()
                         } else {
-                            profileManager.saveOwnerProfile()
+                            profileManager.saveMultiOwnerProfile()
                         }
                     }
                 }
@@ -274,123 +274,252 @@ struct DogProfileEditView: View {
     }
 }
 
-struct OwnerProfileEditView: View {
-    @Binding var ownerProfile: OwnerProfile
+struct MultiOwnerProfileView: View {
+    @Binding var multiOwnerProfile: MultiOwnerProfile
+    @State private var showingAddOwner = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Basic Information
-                GroupBox("Basic Information") {
+                // Owners List
+                GroupBox("Dog Owners") {
                     VStack(spacing: 15) {
-                        HStack {
-                            Text("First Name:")
-                            TextField("First name", text: $ownerProfile.firstName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        if multiOwnerProfile.owners.isEmpty {
+                            Text("No owners added yet")
+                                .foregroundColor(.secondary)
+                                .padding()
+                        } else {
+                            ForEach(multiOwnerProfile.owners.indices, id: \.self) { index in
+                                OwnerRowView(
+                                    owner: $multiOwnerProfile.owners[index],
+                                    onDelete: {
+                                        multiOwnerProfile.removeOwner(withId: multiOwnerProfile.owners[index].id)
+                                    }
+                                )
+                            }
                         }
                         
-                        HStack {
-                            Text("Last Name:")
-                            TextField("Last name", text: $ownerProfile.lastName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Button("Add Owner") {
+                            showingAddOwner = true
                         }
-                        
-                        HStack {
-                            Text("Email:")
-                            TextField("Email", text: $ownerProfile.email)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.emailAddress)
-                        }
-                        
-                        HStack {
-                            Text("Phone:")
-                            TextField("Phone", text: $ownerProfile.phone)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.phonePad)
-                        }
+                        .foregroundColor(.blue)
                     }
-                }
-                
-                // Address
-                GroupBox("Address") {
-                    VStack(spacing: 15) {
-                        TextField("Street", text: $ownerProfile.address.street)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
-                        HStack {
-                            TextField("City", text: $ownerProfile.address.city)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            TextField("State", text: $ownerProfile.address.state)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            TextField("ZIP Code", text: $ownerProfile.address.zipCode)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            TextField("Country", text: $ownerProfile.address.country)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                    }
-                }
-                
-                // Emergency Contact
-                GroupBox("Emergency Contact") {
-                    VStack(spacing: 15) {
-                        HStack {
-                            Text("Name:")
-                            TextField("Emergency contact name", text: $ownerProfile.emergencyContact.name)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            Text("Relationship:")
-                            TextField("Relationship", text: $ownerProfile.emergencyContact.relationship)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            Text("Phone:")
-                            TextField("Emergency phone", text: $ownerProfile.emergencyContact.phone)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.phonePad)
-                        }
-                        
-                        HStack {
-                            Text("Email:")
-                            TextField("Emergency email", text: $ownerProfile.emergencyContact.email)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .keyboardType(.emailAddress)
-                        }
-                    }
-                }
-                
-                // Veterinary Preferences
-                GroupBox("Veterinary Preferences") {
-                    VStack(spacing: 15) {
-                        HStack {
-                            Text("Preferred Vet:")
-                            TextField("Veterinarian name", text: $ownerProfile.preferredVeterinarian)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            Text("Preferred Clinic:")
-                            TextField("Clinic name", text: $ownerProfile.preferredClinic)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                    }
-                }
-                
-                // Notes
-                GroupBox("Notes") {
-                    TextField("Additional notes", text: $ownerProfile.notes, axis: .vertical)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .lineLimit(3...6)
                 }
             }
             .padding()
+        }
+        .sheet(isPresented: $showingAddOwner) {
+            AddOwnerView { newOwner in
+                multiOwnerProfile.addOwner(newOwner)
+                showingAddOwner = false
+            }
+        }
+    }
+}
+
+struct OwnerRowView: View {
+    @Binding var owner: OwnerProfile
+    let onDelete: () -> Void
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(owner.displayName)
+                        .font(.headline)
+                    if !owner.phone.isEmpty || !owner.email.isEmpty {
+                        Text("\(owner.phone.isEmpty ? "" : owner.phone)\(owner.phone.isEmpty || owner.email.isEmpty ? "" : " • ")\(owner.email.isEmpty ? "" : owner.email)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                Button(isExpanded ? "Hide" : "Edit") {
+                    isExpanded.toggle()
+                }
+                .foregroundColor(.blue)
+                
+                Button("Delete") {
+                    onDelete()
+                }
+                .foregroundColor(.red)
+            }
+            
+            if isExpanded {
+                OwnerDetailView(owner: $owner)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .shadow(radius: 1)
+    }
+}
+
+struct OwnerDetailView: View {
+    @Binding var owner: OwnerProfile
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            // Basic Information
+            GroupBox("Basic Information") {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("First Name:")
+                        TextField("First name", text: $owner.firstName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Last Name:")
+                        TextField("Last name", text: $owner.lastName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Relationship:")
+                        TextField("e.g., Primary Owner, Spouse", text: $owner.relationship)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Email:")
+                        TextField("Email", text: $owner.email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.emailAddress)
+                    }
+                    
+                    HStack {
+                        Text("Phone:")
+                        TextField("Phone", text: $owner.phone)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+                }
+            }
+            
+            // Address
+            GroupBox("Address") {
+                VStack(spacing: 15) {
+                    TextField("Street", text: $owner.address.street)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    HStack {
+                        TextField("City", text: $owner.address.city)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        
+                        TextField("State", text: $owner.address.state)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        TextField("ZIP Code", text: $owner.address.zipCode)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        
+                        TextField("Country", text: $owner.address.country)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                }
+            }
+            
+            // Emergency Contact
+            GroupBox("Emergency Contact") {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("Name:")
+                        TextField("Emergency contact name", text: $owner.emergencyContact.name)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Relationship:")
+                        TextField("Relationship", text: $owner.emergencyContact.relationship)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Phone:")
+                        TextField("Emergency phone", text: $owner.emergencyContact.phone)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+                    
+                    HStack {
+                        Text("Email:")
+                        TextField("Emergency email", text: $owner.emergencyContact.email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.emailAddress)
+                    }
+                }
+            }
+            
+            // Veterinary Preferences
+            GroupBox("Veterinary Preferences") {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("Preferred Vet:")
+                        TextField("Veterinarian name", text: $owner.preferredVeterinarian)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Preferred Clinic:")
+                        TextField("Clinic name", text: $owner.preferredClinic)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                }
+            }
+            
+            // Notes
+            GroupBox("Notes") {
+                TextField("Additional notes", text: $owner.notes, axis: .vertical)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .lineLimit(3...6)
+            }
+        }
+    }
+}
+
+struct AddOwnerView: View {
+    @State private var newOwner = OwnerProfile()
+    @Environment(\.dismiss) private var dismiss
+    let onAdd: (OwnerProfile) -> Void
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Add New Owner")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.top)
+                    
+                    OwnerDetailView(owner: $newOwner)
+                        .padding()
+                }
+            }
+            .navigationTitle("Add Owner")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add") {
+                        onAdd(newOwner)
+                    }
+                    .disabled(newOwner.firstName.isEmpty && newOwner.lastName.isEmpty)
+                }
+            }
         }
     }
 }

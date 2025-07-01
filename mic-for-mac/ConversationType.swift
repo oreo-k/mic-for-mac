@@ -200,7 +200,7 @@ enum ConversationType: String, CaseIterable, Identifiable, Codable {
     }
     
     // MARK: - Profile Information Helper
-    func formatProfileInfo(dogProfile: DogProfile?, ownerProfile: OwnerProfile?) -> String {
+    func formatProfileInfo(dogProfile: DogProfile?, multiOwnerProfile: MultiOwnerProfile?) -> String {
         var profileInfo = ""
         
         if let dog = dogProfile {
@@ -240,23 +240,34 @@ enum ConversationType: String, CaseIterable, Identifiable, Codable {
             }
         }
         
-        if let owner = ownerProfile {
+        if let multiOwner = multiOwnerProfile, !multiOwner.owners.isEmpty {
             if !profileInfo.isEmpty {
                 profileInfo += "\n\n"
             }
             profileInfo += """
             OWNER INFORMATION:
-            - Name: \(owner.firstName.isEmpty && owner.lastName.isEmpty ? "Not specified" : "\(owner.firstName) \(owner.lastName)".trimmingCharacters(in: .whitespaces))
+            """
+            
+            for (index, owner) in multiOwner.owners.enumerated() {
+                let ownerNumber = multiOwner.owners.count > 1 ? " \(index + 1)" : ""
+                profileInfo += """
+                
+            Owner\(ownerNumber): \(owner.displayName)
             - Phone: \(owner.phone.isEmpty ? "Not specified" : owner.phone)
             - Email: \(owner.email.isEmpty ? "Not specified" : owner.email)
             """
-            
-            if !owner.preferredVeterinarian.isEmpty {
-                profileInfo += "\n- Preferred Veterinarian: \(owner.preferredVeterinarian)"
-            }
-            
-            if !owner.preferredClinic.isEmpty {
-                profileInfo += "\n- Preferred Clinic: \(owner.preferredClinic)"
+                
+                if !owner.preferredVeterinarian.isEmpty {
+                    profileInfo += "\n- Preferred Veterinarian: \(owner.preferredVeterinarian)"
+                }
+                
+                if !owner.preferredClinic.isEmpty {
+                    profileInfo += "\n- Preferred Clinic: \(owner.preferredClinic)"
+                }
+                
+                if !owner.notes.isEmpty {
+                    profileInfo += "\n- Notes: \(owner.notes)"
+                }
             }
         }
         

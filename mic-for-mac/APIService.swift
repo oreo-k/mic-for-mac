@@ -86,13 +86,13 @@ class APIService: ObservableObject {
     }
     
     // MARK: - GPT Summarization
-    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language, dogProfile: DogProfile? = nil, ownerProfile: OwnerProfile? = nil) async throws -> SummarizationResult {
+    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language, dogProfile: DogProfile? = nil, multiOwnerProfile: MultiOwnerProfile? = nil) async throws -> SummarizationResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
         
         // Format profile information for the prompt
-        let profileInfo = conversationType.formatProfileInfo(dogProfile: dogProfile, ownerProfile: ownerProfile)
+        let profileInfo = conversationType.formatProfileInfo(dogProfile: dogProfile, multiOwnerProfile: multiOwnerProfile)
         
         // Use the appropriate prompt based on conversation type and language
         let prompt = conversationType.userPrompt(language: language, profileInfo: profileInfo).replacingOccurrences(of: "{transcript}", with: transcript)
