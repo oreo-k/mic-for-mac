@@ -155,7 +155,7 @@ struct AudioFileManagementView: View {
                 
                 // Get profile information for enhanced summaries
                 let profileManager = ProfileManager()
-                let dogProfile = profileManager.dogProfile
+                let multiDogProfile = profileManager.multiDogProfile
                 let multiOwnerProfile = profileManager.multiOwnerProfile
                 
                 // Summarize with GPT (including profile information)
@@ -163,7 +163,7 @@ struct AudioFileManagementView: View {
                     transcript: transcriptionResult.text,
                     conversationType: audioFile.conversationType,
                     language: audioFile.language,
-                    dogProfile: dogProfile,
+                    multiDogProfile: multiDogProfile,
                     multiOwnerProfile: multiOwnerProfile
                 )
                 

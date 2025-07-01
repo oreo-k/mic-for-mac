@@ -10,7 +10,7 @@ struct ProfileView: View {
             VStack {
                 // Tab Picker
                 Picker("Profile Type", selection: $selectedTab) {
-                    Text("🐕 Dog Profile").tag(0)
+                    Text("🐕 Dogs").tag(0)
                     Text("👥 Owners").tag(1)
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -18,7 +18,7 @@ struct ProfileView: View {
                 
                 // Tab Content
                 TabView(selection: $selectedTab) {
-                    DogProfileEditView(dogProfile: $profileManager.dogProfile)
+                    MultiDogProfileView(multiDogProfile: $profileManager.multiDogProfile)
                         .tag(0)
                     
                     MultiOwnerProfileView(multiOwnerProfile: $profileManager.multiOwnerProfile)
@@ -38,7 +38,7 @@ struct ProfileView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         if selectedTab == 0 {
-                            profileManager.saveDogProfile()
+                            profileManager.saveMultiDogProfile()
                         } else {
                             profileManager.saveMultiOwnerProfile()
                         }
@@ -49,227 +49,434 @@ struct ProfileView: View {
     }
 }
 
-struct DogProfileEditView: View {
-    @Binding var dogProfile: DogProfile
+struct MultiDogProfileView: View {
+    @Binding var multiDogProfile: MultiDogProfile
+    @State private var showingAddDog = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // Basic Information
-                GroupBox("Basic Information") {
-                    VStack(spacing: 15) {
-                        HStack {
-                            Text("Name:")
-                            TextField("Dog's name", text: $dogProfile.name)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            Text("Breed:")
-                            TextField("Breed", text: $dogProfile.breed)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Date of Birth:")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            DatePicker(
-                                "Date of Birth",
-                                selection: $dogProfile.dateOfBirth,
-                                displayedComponents: .date
-                            )
-                            .datePickerStyle(CompactDatePickerStyle())
-                            .labelsHidden()
-                            
-                            HStack {
-                                Text("Age:")
-                                    .foregroundColor(.secondary)
-                                Text(dogProfile.ageDescription)
-                                    .fontWeight(.medium)
+                // Dog Selector
+                if !multiDogProfile.dogs.isEmpty {
+                    GroupBox("Selected Dog") {
+                        VStack(spacing: 15) {
+                            if let selectedDog = multiDogProfile.selectedDog {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(selectedDog.displayName)
+                                            .font(.headline)
+                                        Text("Age: \(selectedDog.ageDescription)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button("Change") {
+                                        // This will be handled by the dog selector
+                                    }
                                     .foregroundColor(.blue)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        
-                        HStack {
-                            Text("Weight:")
-                            TextField("Weight", value: $dogProfile.weight, format: .number)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            Text("lbs")
-                        }
-                        
-                        HStack {
-                            Text("Color:")
-                            TextField("Color", text: $dogProfile.color)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                        
-                        HStack {
-                            Text("Microchip:")
-                            TextField("Microchip number", text: $dogProfile.microchipNumber)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                        }
-                    }
-                }
-                
-                // Current Medical Details
-                GroupBox("Current Medical Details") {
-                    VStack(spacing: 15) {
-                        Text("Current Medications:")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .font(.headline)
-                        
-                        ForEach(dogProfile.currentMedications.indices, id: \.self) { index in
-                            CurrentMedicationRow(medication: $dogProfile.currentMedications[index])
-                            
-                            Button("Remove Medication") {
-                                dogProfile.currentMedications.remove(at: index)
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                        
-                        Button("Add Current Medication") {
-                            dogProfile.currentMedications.append(DogProfile.CurrentMedication())
-                        }
-                        .foregroundColor(.blue)
-                    }
-                }
-                
-                // Medical History
-                GroupBox("Medical History") {
-                    VStack(spacing: 15) {
-                        Text("Previous Diagnoses & Treatments:")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .font(.headline)
-                        
-                        ForEach(dogProfile.medicalHistory.indices, id: \.self) { index in
-                            MedicalHistoryRow(record: $dogProfile.medicalHistory[index])
-                            
-                            Button("Remove Record") {
-                                dogProfile.medicalHistory.remove(at: index)
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                        
-                        Button("Add Medical Record") {
-                            dogProfile.medicalHistory.append(DogProfile.MedicalRecord(
-                                date: Date(),
-                                diagnosis: "",
-                                treatment: "",
-                                veterinarian: "",
-                                notes: ""
-                            ))
-                        }
-                        .foregroundColor(.blue)
-                    }
-                }
-                
-                // Surgery History
-                GroupBox("Surgery History") {
-                    VStack(spacing: 15) {
-                        Text("Previous Surgeries:")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .font(.headline)
-                        
-                        ForEach(dogProfile.surgeries.indices, id: \.self) { index in
-                            SurgeryRow(surgery: $dogProfile.surgeries[index])
-                            
-                            Button("Remove Surgery") {
-                                dogProfile.surgeries.remove(at: index)
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                        
-                        Button("Add Surgery Record") {
-                            dogProfile.surgeries.append(DogProfile.SurgeryRecord(
-                                date: Date(),
-                                procedure: "",
-                                surgeon: "",
-                                hospital: "",
-                                complications: "",
-                                recoveryNotes: "",
-                                followUpRequired: false,
-                                followUpDate: nil
-                            ))
-                        }
-                        .foregroundColor(.blue)
-                    }
-                }
-                
-                // Vaccination Records
-                GroupBox("Vaccination Records") {
-                    VStack(spacing: 15) {
-                        Text("Vaccinations:")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .font(.headline)
-                        
-                        ForEach(dogProfile.vaccinations.indices, id: \.self) { index in
-                            VaccinationRow(vaccination: $dogProfile.vaccinations[index])
-                            
-                            Button("Remove Vaccination") {
-                                dogProfile.vaccinations.remove(at: index)
-                            }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                        
-                        Button("Add Vaccination") {
-                            dogProfile.vaccinations.append(DogProfile.VaccinationRecord(
-                                date: Date(),
-                                vaccineName: "",
-                                administeredBy: "",
-                                nextDueDate: nil,
-                                notes: ""
-                            ))
-                        }
-                        .foregroundColor(.blue)
-                    }
-                }
-                
-                // Allergies
-                GroupBox("Allergies") {
-                    VStack(spacing: 15) {
-                        Text("Allergies:")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        ForEach(dogProfile.allergies.indices, id: \.self) { index in
-                            HStack {
-                                TextField("Allergy", text: $dogProfile.allergies[index])
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                
-                                Button("Remove") {
-                                    dogProfile.allergies.remove(at: index)
                                 }
-                                .foregroundColor(.red)
+                            }
+                            
+                            // Dog Selector Picker
+                            if multiDogProfile.dogs.count > 1 {
+                                Picker("Select Dog", selection: Binding(
+                                    get: { multiDogProfile.selectedDogId ?? UUID() },
+                                    set: { multiDogProfile.selectDog(withId: $0) }
+                                )) {
+                                    ForEach(multiDogProfile.dogs) { dog in
+                                        Text(dog.displayName).tag(dog.id)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                            }
+                        }
+                    }
+                }
+                
+                // Dogs List
+                GroupBox("All Dogs") {
+                    VStack(spacing: 15) {
+                        if multiDogProfile.dogs.isEmpty {
+                            Text("No dogs added yet")
+                                .foregroundColor(.secondary)
+                                .padding()
+                        } else {
+                            ForEach(multiDogProfile.dogs.indices, id: \.self) { index in
+                                DogRowView(
+                                    dog: $multiDogProfile.dogs[index],
+                                    isSelected: multiDogProfile.selectedDogId == multiDogProfile.dogs[index].id,
+                                    onDelete: {
+                                        multiDogProfile.removeDog(withId: multiDogProfile.dogs[index].id)
+                                    },
+                                    onSelect: {
+                                        multiDogProfile.selectDog(withId: multiDogProfile.dogs[index].id)
+                                    }
+                                )
                             }
                         }
                         
-                        Button("Add Allergy") {
-                            dogProfile.allergies.append("")
+                        Button("Add Dog") {
+                            showingAddDog = true
                         }
                         .foregroundColor(.blue)
                     }
                 }
                 
-                // Special Needs
-                GroupBox("Special Needs") {
-                    TextField("Special needs", text: $dogProfile.specialNeeds, axis: .vertical)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .lineLimit(3...6)
-                }
-                
-                // Notes
-                GroupBox("Notes") {
-                    TextField("Additional notes", text: $dogProfile.notes, axis: .vertical)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .lineLimit(3...6)
+                // Selected Dog Details
+                if let selectedDog = multiDogProfile.selectedDog {
+                    DogDetailView(dog: Binding(
+                        get: { selectedDog },
+                        set: { updatedDog in
+                            multiDogProfile.updateDog(updatedDog)
+                        }
+                    ))
                 }
             }
             .padding()
+        }
+        .sheet(isPresented: $showingAddDog) {
+            AddDogView { newDog in
+                multiDogProfile.addDog(newDog)
+                showingAddDog = false
+            }
+        }
+    }
+}
+
+struct DogRowView: View {
+    @Binding var dog: DogProfile
+    let isSelected: Bool
+    let onDelete: () -> Void
+    let onSelect: () -> Void
+    @State private var isExpanded = false
+    @State private var showingDeleteAlert = false
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(dog.displayName)
+                        .font(.headline)
+                    Text("Age: \(dog.ageDescription)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                }
+                
+                Button(isExpanded ? "Hide" : "Edit") {
+                    isExpanded.toggle()
+                }
+                .foregroundColor(.blue)
+                
+                if !isSelected {
+                    Button("Select") {
+                        onSelect()
+                    }
+                    .foregroundColor(.green)
+                }
+                
+                Button("Delete") {
+                    showingDeleteAlert = true
+                }
+                .foregroundColor(.red)
+            }
+            
+            if isExpanded {
+                DogDetailView(dog: $dog)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .shadow(radius: 1)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isSelected ? Color.green : Color.clear, lineWidth: 2)
+        )
+        .alert("Delete Dog", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete '\(dog.displayName)'? This action cannot be undone.")
+        }
+    }
+}
+
+struct DogDetailView: View {
+    @Binding var dog: DogProfile
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            // Basic Information
+            GroupBox("Basic Information") {
+                VStack(spacing: 15) {
+                    HStack {
+                        Text("Name:")
+                        TextField("Dog's name", text: $dog.name)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Breed:")
+                        TextField("Breed", text: $dog.breed)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Date of Birth:")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        DatePicker(
+                            "Date of Birth",
+                            selection: $dog.dateOfBirth,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(CompactDatePickerStyle())
+                        .labelsHidden()
+                        
+                        HStack {
+                            Text("Age:")
+                                .foregroundColor(.secondary)
+                            Text(dog.ageDescription)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    
+                    HStack {
+                        Text("Weight:")
+                        TextField("Weight", value: $dog.weight, format: .number)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Text("lbs")
+                    }
+                    
+                    HStack {
+                        Text("Color:")
+                        TextField("Color", text: $dog.color)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Microchip:")
+                        TextField("Microchip number", text: $dog.microchipNumber)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                }
+            }
+            
+            // Current Medical Details
+            GroupBox("Current Medical Details") {
+                VStack(spacing: 15) {
+                    Text("Current Medications:")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.headline)
+                    
+                    ForEach(dog.currentMedications.indices, id: \.self) { index in
+                        CurrentMedicationRow(medication: $dog.currentMedications[index])
+                        
+                        DeleteButton(
+                            title: "Remove Medication",
+                            itemName: dog.currentMedications[index].name.isEmpty ? "this medication" : dog.currentMedications[index].name
+                        ) {
+                            dog.currentMedications.remove(at: index)
+                        }
+                    }
+                    
+                    Button("Add Current Medication") {
+                        dog.currentMedications.append(DogProfile.CurrentMedication())
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            // Medical History
+            GroupBox("Medical History") {
+                VStack(spacing: 15) {
+                    Text("Previous Diagnoses & Treatments:")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.headline)
+                    
+                    ForEach(dog.medicalHistory.indices, id: \.self) { index in
+                        MedicalHistoryRow(record: $dog.medicalHistory[index])
+                        
+                        DeleteButton(
+                            title: "Remove Record",
+                            itemName: dog.medicalHistory[index].diagnosis.isEmpty ? "this medical record" : dog.medicalHistory[index].diagnosis
+                        ) {
+                            dog.medicalHistory.remove(at: index)
+                        }
+                    }
+                    
+                    Button("Add Medical Record") {
+                        dog.medicalHistory.append(DogProfile.MedicalRecord(
+                            date: Date(),
+                            diagnosis: "",
+                            treatment: "",
+                            veterinarian: "",
+                            notes: ""
+                        ))
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            // Surgery History
+            GroupBox("Surgery History") {
+                VStack(spacing: 15) {
+                    Text("Previous Surgeries:")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.headline)
+                    
+                    ForEach(dog.surgeries.indices, id: \.self) { index in
+                        SurgeryRow(surgery: $dog.surgeries[index])
+                        
+                        DeleteButton(
+                            title: "Remove Surgery",
+                            itemName: dog.surgeries[index].procedure.isEmpty ? "this surgery record" : dog.surgeries[index].procedure
+                        ) {
+                            dog.surgeries.remove(at: index)
+                        }
+                    }
+                    
+                    Button("Add Surgery Record") {
+                        dog.surgeries.append(DogProfile.SurgeryRecord(
+                            date: Date(),
+                            procedure: "",
+                            surgeon: "",
+                            hospital: "",
+                            complications: "",
+                            recoveryNotes: "",
+                            followUpRequired: false,
+                            followUpDate: nil
+                        ))
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            // Vaccination Records
+            GroupBox("Vaccination Records") {
+                VStack(spacing: 15) {
+                    Text("Vaccinations:")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.headline)
+                    
+                    ForEach(dog.vaccinations.indices, id: \.self) { index in
+                        VaccinationRow(vaccination: $dog.vaccinations[index])
+                        
+                        DeleteButton(
+                            title: "Remove Vaccination",
+                            itemName: dog.vaccinations[index].vaccineName.isEmpty ? "this vaccination record" : dog.vaccinations[index].vaccineName
+                        ) {
+                            dog.vaccinations.remove(at: index)
+                        }
+                    }
+                    
+                    Button("Add Vaccination") {
+                        dog.vaccinations.append(DogProfile.VaccinationRecord(
+                            date: Date(),
+                            vaccineName: "",
+                            administeredBy: "",
+                            nextDueDate: nil,
+                            notes: ""
+                        ))
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            // Allergies
+            GroupBox("Allergies") {
+                VStack(spacing: 15) {
+                    Text("Allergies:")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    ForEach(dog.allergies.indices, id: \.self) { index in
+                        HStack {
+                            TextField("Allergy", text: $dog.allergies[index])
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            
+                            DeleteButton(
+                                title: "Remove",
+                                itemName: dog.allergies[index].isEmpty ? "this allergy" : dog.allergies[index]
+                            ) {
+                                dog.allergies.remove(at: index)
+                            }
+                        }
+                    }
+                    
+                    Button("Add Allergy") {
+                        dog.allergies.append("")
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            // Special Needs
+            GroupBox("Special Needs") {
+                TextField("Special needs", text: $dog.specialNeeds, axis: .vertical)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .lineLimit(3...6)
+            }
+            
+            // Notes
+            GroupBox("Notes") {
+                TextField("Additional notes", text: $dog.notes, axis: .vertical)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .lineLimit(3...6)
+            }
+        }
+    }
+}
+
+struct AddDogView: View {
+    @State private var newDog = DogProfile()
+    @Environment(\.dismiss) private var dismiss
+    let onAdd: (DogProfile) -> Void
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Add New Dog")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.top)
+                    
+                    DogDetailView(dog: $newDog)
+                        .padding()
+                }
+            }
+            .navigationTitle("Add Dog")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add") {
+                        onAdd(newDog)
+                    }
+                    .disabled(newDog.name.isEmpty)
+                }
+            }
         }
     }
 }
@@ -321,6 +528,7 @@ struct OwnerRowView: View {
     @Binding var owner: OwnerProfile
     let onDelete: () -> Void
     @State private var isExpanded = false
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 10) {
@@ -343,7 +551,7 @@ struct OwnerRowView: View {
                 .foregroundColor(.blue)
                 
                 Button("Delete") {
-                    onDelete()
+                    showingDeleteAlert = true
                 }
                 .foregroundColor(.red)
             }
@@ -359,6 +567,14 @@ struct OwnerRowView: View {
         .background(Color(.systemBackground))
         .cornerRadius(8)
         .shadow(radius: 1)
+        .alert("Delete Owner", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete '\(owner.displayName)'? This action cannot be undone.")
+        }
     }
 }
 
@@ -577,6 +793,11 @@ struct CurrentMedicationRow: View {
                     }
                     
                     HStack {
+                        Text("Active:")
+                        Toggle("", isOn: $medication.isActive)
+                    }
+                    
+                    HStack {
                         Text("Prescribed By:")
                         TextField("Veterinarian name", text: $medication.prescribedBy)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -779,6 +1000,29 @@ struct VaccinationRow: View {
                 .background(Color(.secondarySystemBackground))
                 .cornerRadius(8)
             }
+        }
+    }
+}
+
+struct DeleteButton: View {
+    let title: String
+    let itemName: String
+    let onDelete: () -> Void
+    @State private var showingDeleteAlert = false
+    
+    var body: some View {
+        Button(title) {
+            showingDeleteAlert = true
+        }
+        .foregroundColor(.red)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .alert("Delete Item", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete '\(itemName)'? This action cannot be undone.")
         }
     }
 } 
