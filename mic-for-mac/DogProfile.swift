@@ -41,6 +41,17 @@ struct DogProfile: Codable, Identifiable {
         }
     }
     
+    // Computed property for display name with breed
+    var displayName: String {
+        if name.isEmpty {
+            return "Unnamed Dog"
+        }
+        if breed.isEmpty {
+            return name
+        }
+        return "\(name) (\(breed))"
+    }
+    
     // Historical medical records
     struct MedicalRecord: Codable, Identifiable {
         var id = UUID()
@@ -109,5 +120,61 @@ struct DogProfile: Codable, Identifiable {
         var administeredBy: String
         var nextDueDate: Date?
         var notes: String
+    }
+}
+
+// New structure to manage multiple dogs
+struct MultiDogProfile: Codable {
+    var dogs: [DogProfile] = []
+    var selectedDogId: UUID?
+    
+    // Computed property to get selected dog
+    var selectedDog: DogProfile? {
+        if let selectedId = selectedDogId {
+            return dogs.first { $0.id == selectedId }
+        }
+        return dogs.first
+    }
+    
+    // Computed property to get all dog names
+    var allDogNames: String {
+        return dogs.map { $0.name.isEmpty ? "Unnamed Dog" : $0.name }.joined(separator: ", ")
+    }
+    
+    // Computed property to get all dog display names
+    var allDogDisplayNames: String {
+        return dogs.map { $0.displayName }.joined(separator: ", ")
+    }
+    
+    // Add a new dog
+    mutating func addDog(_ dog: DogProfile) {
+        dogs.append(dog)
+        if selectedDogId == nil {
+            selectedDogId = dog.id
+        }
+    }
+    
+    // Remove a dog by ID
+    mutating func removeDog(withId id: UUID) {
+        dogs.removeAll { $0.id == id }
+        
+        // If we removed the selected dog, select the first available dog
+        if selectedDogId == id {
+            selectedDogId = dogs.first?.id
+        }
+    }
+    
+    // Update a dog
+    mutating func updateDog(_ updatedDog: DogProfile) {
+        if let index = dogs.firstIndex(where: { $0.id == updatedDog.id }) {
+            dogs[index] = updatedDog
+        }
+    }
+    
+    // Select a dog
+    mutating func selectDog(withId id: UUID) {
+        if dogs.contains(where: { $0.id == id }) {
+            selectedDogId = id
+        }
     }
 }

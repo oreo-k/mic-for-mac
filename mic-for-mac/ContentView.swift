@@ -24,6 +24,11 @@ struct ContentView: View {
     @State private var showingProcessingAlert = false
     @State private var processingErrorMessage = ""
     
+    // Veterinary consultation form state
+    @State private var showingVeterinaryForm = false
+    @State private var selectedDogsForConsultation: Set<UUID> = []
+    @State private var visitPurpose: String = ""
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 30) {
@@ -46,6 +51,14 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingProfile) {
             ProfileView()
+        }
+        .sheet(isPresented: $showingVeterinaryForm) {
+            VeterinaryConsultationForm { selectedDogs, purpose in
+                selectedDogsForConsultation = selectedDogs
+                visitPurpose = purpose
+                // After form submission, start recording
+                startRecording()
+            }
         }
         .alert("Process Recording", isPresented: $showingProcessingConfirmation) {
             Button("Process Now") {
@@ -203,7 +216,12 @@ struct ContentView: View {
                         await stopRecording()
                     }
                 } else {
-                    startRecording()
+                    // Check if veterinary consultation form is needed
+                    if selectedConversationType == .veterinary {
+                        showingVeterinaryForm = true
+                    } else {
+                        startRecording()
+                    }
                 }
             }) {
                 HStack(spacing: 10) {
@@ -216,8 +234,12 @@ struct ContentView: View {
                             .font(.title2)
                     }
                     
-                    Text(isProcessing ? "Processing..." : (audioRecorder.isRecording ? "Stop Recording" : "Start Recording"))
-                        .font(.headline)
+                    Text(isProcessing ? "Processing..." : (
+                        audioRecorder.isRecording ? "Stop Recording" : (
+                            selectedConversationType == .veterinary ? "Set Up Veterinary Visit" : "Start Recording"
+                        )
+                    ))
+                    .font(.headline)
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -317,16 +339,28 @@ struct ContentView: View {
             
             // Get profile information for enhanced summaries
             let profileManager = ProfileManager()
-            let dogProfile = profileManager.dogProfile
+            let multiDogProfile = profileManager.multiDogProfile
             let multiOwnerProfile = profileManager.multiOwnerProfile
             
-            // Summarize with GPT (including profile information)
+            // For veterinary consultations, filter to only selected dogs
+            var filteredMultiDogProfile = multiDogProfile
+            if selectedConversationType == .veterinary && !selectedDogsForConsultation.isEmpty {
+                filteredMultiDogProfile = MultiDogProfile(
+                    dogs: multiDogProfile.dogs.filter { selectedDogsForConsultation.contains($0.id) }
+                )
+            }
+            
+            // Summarize with GPT (including profile information and veterinary context)
             let summarizationResult = try await apiService.summarizeWithGPT(
                 transcript: transcriptionResult.text,
                 conversationType: selectedConversationType,
                 language: selectedLanguage,
-                dogProfile: dogProfile,
-                multiOwnerProfile: multiOwnerProfile
+                multiDogProfile: filteredMultiDogProfile,
+                multiOwnerProfile: multiOwnerProfile,
+                veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
+                    selectedDogs: selectedDogsForConsultation,
+                    visitPurpose: visitPurpose
+                ) : nil
             )
             
             // Save file with metadata
@@ -341,13 +375,19 @@ struct ContentView: View {
                 language: selectedLanguage,
                 transcriptionCost: transcriptionResult.cost,
                 summarizationCost: summarizationResult.cost,
-                tokenCount: summarizationResult.tokenCount
+                tokenCount: summarizationResult.tokenCount,
+                veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
+                    selectedDogs: selectedDogsForConsultation,
+                    visitPurpose: visitPurpose
+                ) : nil
             )
             
             fileManager.addFile(audioFile)
             
-            // Clear the pending URL
+            // Clear the pending URL and veterinary context
             pendingRecordingURL = nil
+            selectedDogsForConsultation = []
+            visitPurpose = ""
             
         } catch {
             processingErrorMessage = error.localizedDescription
@@ -367,13 +407,19 @@ struct ContentView: View {
             date: Date(),
             duration: 0.0, // We'll get the actual duration when processing
             conversationType: selectedConversationType,
-            language: selectedLanguage
+            language: selectedLanguage,
+            veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
+                selectedDogs: selectedDogsForConsultation,
+                visitPurpose: visitPurpose
+            ) : nil
         )
         
         fileManager.addFile(pendingFile)
         
-        // Clear the pending URL
+        // Clear the pending URL and veterinary context
         pendingRecordingURL = nil
+        selectedDogsForConsultation = []
+        visitPurpose = ""
     }
 }
 

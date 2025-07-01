@@ -14,9 +14,10 @@ struct AudioFile: Identifiable, Codable {
     let summarizationCost: Double
     let tokenCount: Int
     let isPending: Bool
+    let veterinaryContext: VeterinaryContext?
     
     // Initializer for processed files
-    init(url: URL, filename: String, date: Date, duration: TimeInterval, transcript: String, summary: String, conversationType: ConversationType, language: Language, transcriptionCost: Double, summarizationCost: Double, tokenCount: Int) {
+    init(url: URL, filename: String, date: Date, duration: TimeInterval, transcript: String, summary: String, conversationType: ConversationType, language: Language, transcriptionCost: Double, summarizationCost: Double, tokenCount: Int, veterinaryContext: VeterinaryContext? = nil) {
         self.url = url
         self.filename = filename
         self.date = date
@@ -29,10 +30,11 @@ struct AudioFile: Identifiable, Codable {
         self.summarizationCost = summarizationCost
         self.tokenCount = tokenCount
         self.isPending = false
+        self.veterinaryContext = veterinaryContext
     }
     
     // Initializer for pending files (not yet processed)
-    init(url: URL, filename: String, date: Date, duration: TimeInterval, conversationType: ConversationType, language: Language) {
+    init(url: URL, filename: String, date: Date, duration: TimeInterval, conversationType: ConversationType, language: Language, veterinaryContext: VeterinaryContext? = nil) {
         self.url = url
         self.filename = filename
         self.date = date
@@ -45,6 +47,7 @@ struct AudioFile: Identifiable, Codable {
         self.summarizationCost = 0.0
         self.tokenCount = 0
         self.isPending = true
+        self.veterinaryContext = veterinaryContext
     }
     
     var totalCost: Double {
@@ -83,5 +86,13 @@ struct AudioFile: Identifiable, Codable {
             return "Pending"
         }
         return String(format: "$%.4f", summarizationCost)
+    }
+    
+    var hasVeterinaryContext: Bool {
+        veterinaryContext != nil
+    }
+    
+    var veterinaryContextDescription: String {
+        veterinaryContext?.fullDescription ?? "No veterinary context"
     }
 } 

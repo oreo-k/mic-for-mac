@@ -200,43 +200,56 @@ enum ConversationType: String, CaseIterable, Identifiable, Codable {
     }
     
     // MARK: - Profile Information Helper
-    func formatProfileInfo(dogProfile: DogProfile?, multiOwnerProfile: MultiOwnerProfile?) -> String {
+    func formatProfileInfo(multiDogProfile: MultiDogProfile?, multiOwnerProfile: MultiOwnerProfile?) -> String {
         var profileInfo = ""
         
-        if let dog = dogProfile {
-            profileInfo += """
-            DOG INFORMATION:
-            - Name: \(dog.name.isEmpty ? "Not specified" : dog.name)
-            - Breed: \(dog.breed.isEmpty ? "Not specified" : dog.breed)
-            - Age: \(dog.ageDescription)
-            - Weight: \(dog.weight > 0 ? "\(dog.weight) lbs" : "Not specified")
-            - Color: \(dog.color.isEmpty ? "Not specified" : dog.color)
-            - Microchip: \(dog.microchipNumber.isEmpty ? "Not specified" : dog.microchipNumber)
-            """
-            
-            if !dog.currentMedications.isEmpty {
-                profileInfo += "\n- Current Medications:"
-                for med in dog.currentMedications where med.isActive {
-                    profileInfo += "\n  * \(med.name) - \(med.dosage) \(med.frequency)"
+        if let multiDog = multiDogProfile, !multiDog.dogs.isEmpty {
+            // Show selected dog information
+            if let selectedDog = multiDog.selectedDog {
+                profileInfo += """
+                SELECTED DOG INFORMATION:
+                - Name: \(selectedDog.name.isEmpty ? "Not specified" : selectedDog.name)
+                - Breed: \(selectedDog.breed.isEmpty ? "Not specified" : selectedDog.breed)
+                - Age: \(selectedDog.ageDescription)
+                - Weight: \(selectedDog.weight > 0 ? "\(selectedDog.weight) lbs" : "Not specified")
+                - Color: \(selectedDog.color.isEmpty ? "Not specified" : selectedDog.color)
+                - Microchip: \(selectedDog.microchipNumber.isEmpty ? "Not specified" : selectedDog.microchipNumber)
+                """
+                
+                if !selectedDog.currentMedications.isEmpty {
+                    profileInfo += "\n- Current Medications:"
+                    for med in selectedDog.currentMedications where med.isActive {
+                        profileInfo += "\n  * \(med.name) - \(med.dosage) \(med.frequency)"
+                    }
+                }
+                
+                if !selectedDog.allergies.isEmpty {
+                    profileInfo += "\n- Allergies: \(selectedDog.allergies.joined(separator: ", "))"
+                }
+                
+                if !selectedDog.specialNeeds.isEmpty {
+                    profileInfo += "\n- Special Needs: \(selectedDog.specialNeeds)"
+                }
+                
+                if !selectedDog.medicalHistory.isEmpty {
+                    profileInfo += "\n- Recent Medical History:"
+                    let recentHistory = selectedDog.medicalHistory.sorted { $0.date > $1.date }.prefix(3)
+                    for record in recentHistory {
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateStyle = .short
+                        profileInfo += "\n  * \(dateFormatter.string(from: record.date)): \(record.diagnosis)"
+                    }
                 }
             }
             
-            if !dog.allergies.isEmpty {
-                profileInfo += "\n- Allergies: \(dog.allergies.joined(separator: ", "))"
-            }
-            
-            if !dog.specialNeeds.isEmpty {
-                profileInfo += "\n- Special Needs: \(dog.specialNeeds)"
-            }
-            
-            if !dog.medicalHistory.isEmpty {
-                profileInfo += "\n- Recent Medical History:"
-                let recentHistory = dog.medicalHistory.sorted { $0.date > $1.date }.prefix(3)
-                for record in recentHistory {
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateStyle = .short
-                    profileInfo += "\n  * \(dateFormatter.string(from: record.date)): \(record.diagnosis)"
+            // Show all dogs summary if there are multiple dogs
+            if multiDog.dogs.count > 1 {
+                if !profileInfo.isEmpty {
+                    profileInfo += "\n\n"
                 }
+                profileInfo += """
+                ALL DOGS: \(multiDog.allDogDisplayNames)
+                """
             }
         }
         

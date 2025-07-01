@@ -86,16 +86,26 @@ class APIService: ObservableObject {
     }
     
     // MARK: - GPT Summarization
-    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language, dogProfile: DogProfile? = nil, multiOwnerProfile: MultiOwnerProfile? = nil) async throws -> SummarizationResult {
+    func summarizeWithGPT(transcript: String, conversationType: ConversationType, language: Language, multiDogProfile: MultiDogProfile? = nil, multiOwnerProfile: MultiOwnerProfile? = nil, veterinaryContext: VeterinaryContext? = nil) async throws -> SummarizationResult {
         guard !whisperAPIKey.isEmpty else {
             throw APIError.missingAPIKey
         }
         
         // Format profile information for the prompt
-        let profileInfo = conversationType.formatProfileInfo(dogProfile: dogProfile, multiOwnerProfile: multiOwnerProfile)
+        let profileInfo = conversationType.formatProfileInfo(multiDogProfile: multiDogProfile, multiOwnerProfile: multiOwnerProfile)
+        
+        // Add veterinary context to profile info if available
+        var enhancedProfileInfo = profileInfo
+        if let veterinaryContext = veterinaryContext {
+            enhancedProfileInfo += "\n\nVeterinary Consultation Context:\n"
+            enhancedProfileInfo += "Selected Dogs: \(veterinaryContext.selectedDogsDescription)"
+            if veterinaryContext.hasVisitPurpose {
+                enhancedProfileInfo += "\nVisit Purpose: \(veterinaryContext.visitPurpose)"
+            }
+        }
         
         // Use the appropriate prompt based on conversation type and language
-        let prompt = conversationType.userPrompt(language: language, profileInfo: profileInfo).replacingOccurrences(of: "{transcript}", with: transcript)
+        let prompt = conversationType.userPrompt(language: language, profileInfo: enhancedProfileInfo).replacingOccurrences(of: "{transcript}", with: transcript)
         
         let requestBody = GPTRequest(
             model: "gpt-3.5-turbo",
