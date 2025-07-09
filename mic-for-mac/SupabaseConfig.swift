@@ -1,22 +1,23 @@
 import Foundation
 import Supabase
+// import Supabase  // Temporarily commented out for debugging
 
 class SupabaseConfig {
     static let shared = SupabaseConfig()
     
     // MARK: - Configuration
-    private var supabaseURL: String {
-        // Try to get from environment variable first
-        if let envURL = ProcessInfo.processInfo.environment["SUPABASE_URL"] {
+    var supabaseURL: String {
+        // Try to get from EnvironmentConfig first
+        if let envURL = EnvironmentConfig.shared.supabaseURL {
             return envURL
         }
         // Fallback to UserDefaults (for development)
         return UserDefaults.standard.string(forKey: "SUPABASE_URL") ?? ""
     }
     
-    private var supabaseAnonKey: String {
-        // Try to get from environment variable first
-        if let envKey = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"] {
+    var supabaseAnonKey: String {
+        // Try to get from EnvironmentConfig first
+        if let envKey = EnvironmentConfig.shared.supabaseAnonKey {
             return envKey
         }
         // Fallback to UserDefaults (for development)

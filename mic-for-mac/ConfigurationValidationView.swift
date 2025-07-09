@@ -1,5 +1,6 @@
 import SwiftUI
-import Supabase
+import UIKit
+// import Supabase  // Temporarily commented out until package linking is fixed
 
 struct ConfigurationValidationView: View {
     @StateObject private var configValidator = ConfigurationValidator()
@@ -108,7 +109,7 @@ struct ConfigurationValidationView: View {
     
     private func openSetupGuide() {
         if let url = URL(string: "https://github.com/your-repo/mic-for-mac/blob/main/SUPABASE_SETUP.md") {
-            NSWorkspace.shared.open(url)
+            UIApplication.shared.open(url)
         }
     }
 }
@@ -223,25 +224,31 @@ class ConfigurationValidator: ObservableObject {
             return
         }
         
-        do {
-            let client = SupabaseConfig.shared.client
-            // Try a simple query to test connection
-            let _: [String: Any] = try await client.database
-                .from("user_profiles")
-                .select("id")
-                .limit(1)
-                .execute()
-                .value
-            
-            await MainActor.run {
-                connectionStatus = .success
-            }
-        } catch {
-            await MainActor.run {
-                connectionStatus = .error
-                errorMessages.append("Database connection failed: \(error.localizedDescription)")
-            }
+        // Temporarily disabled until Supabase is properly linked
+        await MainActor.run {
+            connectionStatus = .warning
+            errorMessages.append("Database connection test temporarily disabled")
         }
+        
+        // do {
+        //     let client = SupabaseConfig.shared.client
+        //     // Try a simple query to test connection
+        //     let _: [String: Any] = try await client.database
+        //         .from("user_profiles")
+        //         .select("id")
+        //         .limit(1)
+        //         .execute()
+        //         .value
+        //     
+        //     await MainActor.run {
+        //         connectionStatus = .success
+        //     }
+        // } catch {
+        //     await MainActor.run {
+        //         connectionStatus = .error
+        //         errorMessages.append("Database connection failed: \(error.localizedDescription)")
+        //     }
+        // }
     }
     
     private func validateAuthentication() async {
@@ -252,24 +259,30 @@ class ConfigurationValidator: ObservableObject {
             return
         }
         
-        do {
-            let client = SupabaseConfig.shared.client
-            let session = try await client.auth.session
-            
-            await MainActor.run {
-                if session != nil {
-                    authStatus = .success
-                } else {
-                    authStatus = .warning
-                    errorMessages.append("No active session - authentication required")
-                }
-            }
-        } catch {
-            await MainActor.run {
-                authStatus = .error
-                errorMessages.append("Authentication system error: \(error.localizedDescription)")
-            }
+        // Temporarily disabled until Supabase is properly linked
+        await MainActor.run {
+            authStatus = .warning
+            errorMessages.append("Authentication test temporarily disabled")
         }
+        
+        // do {
+        //     let client = SupabaseConfig.shared.client
+        //     let session = try await client.auth.session
+        //     
+        //     await MainActor.run {
+        //         if session != nil {
+        //             authStatus = .success
+        //         } else {
+        //             authStatus = .warning
+        //             errorMessages.append("No active session - authentication required")
+        //         }
+        //     }
+        // } catch {
+        //     await MainActor.run {
+        //         authStatus = .error
+        //         errorMessages.append("Authentication system error: \(error.localizedDescription)")
+        //     }
+        // }
     }
 }
 

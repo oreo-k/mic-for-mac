@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3836C1732E1BA0720056DEB9 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C1722E1BA0720056DEB9 /* Auth */; };
+		3836C1752E1BA0720056DEB9 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C1742E1BA0720056DEB9 /* Functions */; };
+		3836C1772E1BA0720056DEB9 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C1762E1BA0720056DEB9 /* PostgREST */; };
+		3836C1792E1BA0720056DEB9 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C1782E1BA0720056DEB9 /* Realtime */; };
+		3836C17B2E1BA0720056DEB9 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C17A2E1BA0720056DEB9 /* Storage */; };
+		3836C17E2E1BA23B0056DEB9 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3836C17D2E1BA23B0056DEB9 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		387FF2612E014C5D00E2EB64 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +61,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3836C1772E1BA0720056DEB9 /* PostgREST in Frameworks */,
+				3836C1752E1BA0720056DEB9 /* Functions in Frameworks */,
+				3836C17E2E1BA23B0056DEB9 /* Supabase in Frameworks */,
+				3836C1732E1BA0720056DEB9 /* Auth in Frameworks */,
+				3836C17B2E1BA0720056DEB9 /* Storage in Frameworks */,
+				3836C1792E1BA0720056DEB9 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +87,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3836C17C2E1BA23B0056DEB9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		387FF24A2E014C5D00E2EB64 = {
 			isa = PBXGroup;
 			children = (
 				387FF2552E014C5D00E2EB64 /* mic-for-mac */,
 				387FF2632E014C5D00E2EB64 /* mic-for-macTests */,
 				387FF26D2E014C5D00E2EB64 /* mic-for-macUITests */,
+				3836C17C2E1BA23B0056DEB9 /* Frameworks */,
 				387FF2542E014C5D00E2EB64 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +135,12 @@
 			);
 			name = "mic-for-mac";
 			packageProductDependencies = (
+				3836C1722E1BA0720056DEB9 /* Auth */,
+				3836C1742E1BA0720056DEB9 /* Functions */,
+				3836C1762E1BA0720056DEB9 /* PostgREST */,
+				3836C1782E1BA0720056DEB9 /* Realtime */,
+				3836C17A2E1BA0720056DEB9 /* Storage */,
+				3836C17D2E1BA23B0056DEB9 /* Supabase */,
 			);
 			productName = "mic-for-mac";
 			productReference = 387FF2532E014C5D00E2EB64 /* mic-for-mac.app */;
@@ -195,6 +224,9 @@
 			);
 			mainGroup = 387FF24A2E014C5D00E2EB64;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 387FF2542E014C5D00E2EB64 /* Products */;
 			projectDirPath = "";
@@ -566,6 +598,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3836C1722E1BA0720056DEB9 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		3836C1742E1BA0720056DEB9 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		3836C1762E1BA0720056DEB9 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		3836C1782E1BA0720056DEB9 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		3836C17A2E1BA0720056DEB9 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		3836C17D2E1BA23B0056DEB9 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3836C1712E1BA0720056DEB9 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 387FF24B2E014C5D00E2EB64 /* Project object */;
 }

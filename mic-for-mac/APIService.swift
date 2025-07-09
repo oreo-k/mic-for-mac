@@ -3,8 +3,8 @@ import Foundation
 class APIService: ObservableObject {
     // MARK: - Configuration
     private var whisperAPIKey: String {
-        // Try to get from environment variable first
-        if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"] {
+        // Try to get from EnvironmentConfig first
+        if let envKey = EnvironmentConfig.shared.openAIAPIKey {
             return envKey
         }
         // Fallback to UserDefaults (for development)
