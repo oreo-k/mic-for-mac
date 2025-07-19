@@ -6,32 +6,127 @@ class ProfileManager: ObservableObject {
     
     private let multiDogProfileKey = "multiDogProfile"
     private let multiOwnerProfileKey = "multiOwnerProfile"
+    private var supabaseService: SupabaseService? {
+        // Only access SupabaseService if configuration is available
+        guard SupabaseConfig.shared.isConfigured else {
+            return nil
+        }
+        return SupabaseService.shared
+    }
     
     init() {
         loadProfiles()
     }
     
     func saveMultiDogProfile() {
+        print("💾 Saving dog profiles...")
+        print("📊 Current dogs count: \(multiDogProfile.dogs.count)")
+        
+        // Save to UserDefaults (local storage)
         if let encoded = try? JSONEncoder().encode(multiDogProfile) {
             UserDefaults.standard.set(encoded, forKey: multiDogProfileKey)
+            UserDefaults.standard.synchronize() // Force immediate save
+            print("✅ Dog profiles saved to UserDefaults")
+        } else {
+            print("❌ Failed to encode dog profiles for UserDefaults")
+        }
+        
+        // Save to Supabase
+        Task {
+            await saveDogsToSupabase()
         }
     }
     
     func saveMultiOwnerProfile() {
+        // Save to UserDefaults (local storage)
         if let encoded = try? JSONEncoder().encode(multiOwnerProfile) {
             UserDefaults.standard.set(encoded, forKey: multiOwnerProfileKey)
+        }
+        
+        // Save to Supabase
+        Task {
+            await saveOwnersToSupabase()
+        }
+    }
+    
+    private func saveDogsToSupabase() async {
+        guard let supabaseService = supabaseService else {
+            print("⚠️ Supabase not configured - saving to local storage only")
+            return
+        }
+        
+        // TODO: Re-enable authentication check after testing
+        // guard supabaseService.isAuthenticated,
+        //       let currentUser = supabaseService.currentUser else {
+        //     print("⚠️ Not authenticated with Supabase - cannot save dogs")
+        //     return
+        // }
+        
+        print("🔧 Testing Supabase connection without authentication...")
+        
+        do {
+            // Save each dog profile to Supabase
+            for dog in multiDogProfile.dogs {
+                // Convert DogProfile to Supabase format
+                var supabaseDog = dog.supabaseFormat
+                // TODO: Set user_id when authentication is implemented
+                // supabaseDog["user_id"] = currentUser.id.uuidString
+                
+                // Create or update the dog profile in Supabase
+                try await supabaseService.createDogProfile(dog)
+                print("✅ Dog '\(dog.name)' saved to Supabase")
+            }
+        } catch {
+            print("❌ Error saving dogs to Supabase: \(error)")
+        }
+    }
+    
+    private func saveOwnersToSupabase() async {
+        guard let supabaseService = supabaseService else {
+            print("⚠️ Supabase not configured - saving to local storage only")
+            return
+        }
+        
+        // TODO: Re-enable authentication check after testing
+        // guard supabaseService.isAuthenticated,
+        //       let currentUser = supabaseService.currentUser else {
+        //     print("⚠️ Not authenticated with Supabase - cannot save owners")
+        //     return
+        // }
+        
+        print("🔧 Testing Supabase connection without authentication...")
+        
+        do {
+            // Save each owner profile to Supabase
+            for owner in multiOwnerProfile.owners {
+                // Convert OwnerProfile to Supabase format
+                var supabaseOwner = owner.supabaseFormat
+                // TODO: Set user_id when authentication is implemented
+                // supabaseOwner["user_id"] = currentUser.id.uuidString
+                
+                // Create or update the owner profile in Supabase
+                try await supabaseService.createOwnerProfile(owner)
+                print("✅ Owner '\(owner.fullName)' saved to Supabase")
+            }
+        } catch {
+            print("❌ Error saving owners to Supabase: \(error)")
         }
     }
     
     private func loadProfiles() {
+        print("🔄 Loading profiles from UserDefaults...")
+        
         // Load multi-dog profile
         if let dogData = UserDefaults.standard.data(forKey: multiDogProfileKey),
            let loadedMultiDogProfile = try? JSONDecoder().decode(MultiDogProfile.self, from: dogData) {
             self.multiDogProfile = loadedMultiDogProfile
+            print("✅ Loaded \(loadedMultiDogProfile.dogs.count) dogs from UserDefaults")
         } else {
+            print("⚠️ No dog profiles found in UserDefaults")
             // Migration: If no multi-dog profile exists, try to load the old single dog profile
             if let oldDogData = UserDefaults.standard.data(forKey: "dogProfile"),
                let oldDogProfile = try? JSONDecoder().decode(DogProfile.self, from: oldDogData) {
+                print("🔄 Migrating old single dog profile...")
                 // Convert old single dog to multi-dog format
                 self.multiDogProfile = MultiDogProfile()
                 self.multiDogProfile.addDog(oldDogProfile)

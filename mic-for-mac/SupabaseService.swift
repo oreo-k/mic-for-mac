@@ -2,20 +2,7 @@ import Foundation
 import Supabase
 import Combine
 
-// MARK: - Stub Types (will be replaced with actual Supabase types)
-struct User {
-    let id: String
-    let email: String
-}
-
-struct RealtimeChannel {
-    // Stub for real-time channel
-}
-
-struct RealtimePostgresChangesPayload {
-    // Stub for real-time payload
-}
-
+// MARK: - File Options Helper
 struct FileOptions {
     let contentType: String
     
@@ -30,6 +17,8 @@ class SupabaseService: ObservableObject {
     // MARK: - Properties
     private var client: SupabaseClient
     private var cancellables = Set<AnyCancellable>()
+    private var realtimeChannel: RealtimeChannelV2?
+    private var realtimeTasks: [Task<Void, Never>] = []
     
     // MARK: - Published Properties
     @Published var isAuthenticated = false
@@ -143,14 +132,14 @@ class SupabaseService: ObservableObject {
     
     // User Profiles
     func createUserProfile(_ profile: UserProfile) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.userProfiles)
             .insert(profile)
             .execute()
     }
     
     func getUserProfile(userId: UUID) async throws -> UserProfile? {
-        let response: [UserProfile] = try await client.database
+        let response: [UserProfile] = try await client
             .from(SupabaseConfig.Tables.userProfiles)
             .select()
             .eq("id", value: userId)
@@ -161,7 +150,7 @@ class SupabaseService: ObservableObject {
     }
     
     func updateUserProfile(_ profile: UserProfile) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.userProfiles)
             .update(profile)
             .eq("id", value: profile.id)
@@ -170,14 +159,33 @@ class SupabaseService: ObservableObject {
     
     // Dog Profiles
     func createDogProfile(_ profile: DogProfile) async throws {
-        try await client.database
-            .from(SupabaseConfig.Tables.dogProfiles)
-            .insert(profile)
-            .execute()
+        print("🔧 SupabaseService: Creating dog profile...")
+        print("  Dog: \(profile.name)")
+        print("  Table: \(SupabaseConfig.Tables.dogProfiles)")
+        print("  Is authenticated: \(isAuthenticated)")
+        
+        do {
+            let response = try await client
+                .from(SupabaseConfig.Tables.dogProfiles)
+                .insert(profile)
+                .execute()
+            
+            print("✅ Dog profile created successfully in Supabase")
+            print("  Response: \(response)")
+            
+        } catch {
+            print("❌ Failed to create dog profile in Supabase")
+            print("  Error: \(error)")
+            print("  Error type: \(type(of: error))")
+            
+            print("  Error description: \(error.localizedDescription)")
+            
+            throw error
+        }
     }
     
     func getDogProfiles(userId: UUID) async throws -> [DogProfile] {
-        let response: [DogProfile] = try await client.database
+        let response: [DogProfile] = try await client
             .from(SupabaseConfig.Tables.dogProfiles)
             .select()
             .eq("user_id", value: userId)
@@ -188,7 +196,7 @@ class SupabaseService: ObservableObject {
     }
     
     func updateDogProfile(_ profile: DogProfile) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.dogProfiles)
             .update(profile)
             .eq("id", value: profile.id)
@@ -196,8 +204,43 @@ class SupabaseService: ObservableObject {
     }
     
     func deleteDogProfile(id: UUID) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.dogProfiles)
+            .delete()
+            .eq("id", value: id)
+            .execute()
+    }
+    
+    // Owner Profiles
+    func createOwnerProfile(_ profile: OwnerProfile) async throws {
+        try await client
+            .from(SupabaseConfig.Tables.ownerProfiles)
+            .insert(profile)
+            .execute()
+    }
+    
+    func getOwnerProfiles(userId: UUID) async throws -> [OwnerProfile] {
+        let response: [OwnerProfile] = try await client
+            .from(SupabaseConfig.Tables.ownerProfiles)
+            .select()
+            .eq("user_id", value: userId)
+            .execute()
+            .value
+        
+        return response
+    }
+    
+    func updateOwnerProfile(_ profile: OwnerProfile) async throws {
+        try await client
+            .from(SupabaseConfig.Tables.ownerProfiles)
+            .update(profile)
+            .eq("id", value: profile.id)
+            .execute()
+    }
+    
+    func deleteOwnerProfile(id: UUID) async throws {
+        try await client
+            .from(SupabaseConfig.Tables.ownerProfiles)
             .delete()
             .eq("id", value: id)
             .execute()
@@ -205,14 +248,14 @@ class SupabaseService: ObservableObject {
     
     // Audio Files
     func createAudioFile(_ audioFile: AudioFile) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.audioFiles)
             .insert(audioFile)
             .execute()
     }
     
     func getAudioFiles(userId: UUID) async throws -> [AudioFile] {
-        let response: [AudioFile] = try await client.database
+        let response: [AudioFile] = try await client
             .from(SupabaseConfig.Tables.audioFiles)
             .select()
             .eq("user_id", value: userId)
@@ -224,7 +267,7 @@ class SupabaseService: ObservableObject {
     }
     
     func updateAudioFile(_ audioFile: AudioFile) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.audioFiles)
             .update(audioFile)
             .eq("id", value: audioFile.id)
@@ -232,7 +275,7 @@ class SupabaseService: ObservableObject {
     }
     
     func deleteAudioFile(id: UUID) async throws {
-        try await client.database
+        try await client
             .from(SupabaseConfig.Tables.audioFiles)
             .delete()
             .eq("id", value: id)
@@ -243,14 +286,14 @@ class SupabaseService: ObservableObject {
     
     func uploadAudioFile(_ fileURL: URL, fileName: String) async throws -> String {
         let fileData = try Data(contentsOf: fileURL)
-        let path = try await client.storage
+        let response = try await client.storage
             .from(SupabaseConfig.Storage.audioFiles)
             .upload(
-                path: fileName,
-                file: fileData,
+                fileName,
+                data: fileData,
                 options: Storage.FileOptions(contentType: "audio/m4a")
             )
-        return path
+        return response.path
     }
     
     func downloadAudioFile(path: String) async throws -> URL {
@@ -274,23 +317,97 @@ class SupabaseService: ObservableObject {
     // MARK: - Real-time Subscriptions (RealtimeChannelV2)
     
     func subscribeToAudioFiles(userId: UUID) {
-        let channel = client.realtime.channel("audio_files")
-        channel.on(event: "postgres_changes", filter: ChannelFilter("table=audio_files")) { [weak self] (message: RealtimeMessage) in
-            self?.handleAudioFileUpdate(message)
-        }
+        // Clean up any existing subscriptions first
+        cleanupRealtimeSubscriptions()
+        
         Task {
+            let channel = client.realtimeV2.channel("audio_files")
+            self.realtimeChannel = channel
+            
+            // Subscribe to postgres changes for audio_files table with separate action types
+            let insertions = channel.postgresChange(InsertAction.self, table: "audio_files")
+            let updates = channel.postgresChange(UpdateAction.self, table: "audio_files")
+            let deletions = channel.postgresChange(DeleteAction.self, table: "audio_files")
+            
+            // Subscribe to the channel
             await channel.subscribe()
+            
+            // Handle insertions
+            let insertionTask = Task {
+                for await insertion in insertions {
+                    await handleAudioFileInserted(insertion)
+                }
+            }
+            realtimeTasks.append(insertionTask)
+            
+            // Handle updates
+            let updateTask = Task {
+                for await update in updates {
+                    await handleAudioFileUpdated(update)
+                }
+            }
+            realtimeTasks.append(updateTask)
+            
+            // Handle deletions
+            let deletionTask = Task {
+                for await deletion in deletions {
+                    await handleAudioFileDeleted(deletion)
+                }
+            }
+            realtimeTasks.append(deletionTask)
         }
     }
     
-    private func handleAudioFileUpdate(_ message: RealtimeMessage) {
-        // Handle real-time updates for audio files
+    private func handleAudioFileInserted(_ action: InsertAction) async {
+        // Handle new audio file insertion
+        print("Processing new audio file: \(action.record)")
+        // TODO: Update UI or trigger refresh
+        // You can decode the record here if needed:
+        // let audioFile = try? action.decodeRecord(decoder: JSONDecoder()) as AudioFile
+    }
+    
+    private func handleAudioFileUpdated(_ action: UpdateAction) async {
+        // Handle audio file update
+        print("Processing audio file update: \(action.record)")
+        // TODO: Update UI or trigger refresh
+        // You can decode the record here if needed:
+        // let audioFile = try? action.decodeRecord(decoder: JSONDecoder()) as AudioFile
+    }
+    
+    private func handleAudioFileDeleted(_ action: DeleteAction) async {
+        // Handle audio file deletion
+        print("Processing audio file deletion: \(action.oldRecord)")
+        // TODO: Update UI or trigger refresh
+        // You can decode the old record here if needed:
+        // let audioFile = try? action.decodeOldRecord(decoder: JSONDecoder()) as AudioFile
     }
     
     // MARK: - Error Handling
     
     func clearError() {
         errorMessage = nil
+    }
+    
+    // MARK: - Cleanup
+    
+    func cleanupRealtimeSubscriptions() {
+        // Cancel all real-time tasks
+        for task in realtimeTasks {
+            task.cancel()
+        }
+        realtimeTasks.removeAll()
+        
+        // Unsubscribe from the channel
+        Task {
+            await realtimeChannel?.unsubscribe()
+            realtimeChannel = nil
+        }
+        
+        print("Real-time subscriptions cleanup completed")
+    }
+    
+    deinit {
+        cleanupRealtimeSubscriptions()
     }
 }
 
@@ -322,10 +439,8 @@ extension DogProfile {
             "weight": weight,
             "color": color,
             "microchip_number": microchipNumber,
-            "medical_history": medicalHistory,
-            "current_medications": currentMedications,
-            "surgeries": surgeries,
-            "vaccinations": vaccinations,
+            "medical_conditions": [], // Will be populated from medicalHistory
+            "medications": [], // Will be populated from currentMedications
             "allergies": allergies,
             "special_needs": specialNeeds,
             "photo_url": photoURL,
@@ -354,6 +469,21 @@ extension AudioFile {
             "is_pending": isPending,
             "veterinary_context": veterinaryContext?.supabaseFormat as Any,
             "created_at": date,
+            "updated_at": Date()
+        ]
+    }
+}
+
+extension OwnerProfile {
+    var supabaseFormat: [String: Any] {
+        return [
+            "id": id.uuidString,
+            "user_id": "", // Will be set by the service
+            "full_name": fullName,
+            "phone": phone,
+            "address": "\(address.street), \(address.city), \(address.state) \(address.zipCode)",
+            "emergency_contact": "\(emergencyContact.name) - \(emergencyContact.phone)",
+            "created_at": Date(),
             "updated_at": Date()
         ]
     }

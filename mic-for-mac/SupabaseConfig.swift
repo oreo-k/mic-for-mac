@@ -54,7 +54,11 @@ class SupabaseConfig {
     
     // MARK: - Configuration Validation
     var isConfigured: Bool {
-        return !supabaseURL.isEmpty && !supabaseAnonKey.isEmpty
+        let configured = !supabaseURL.isEmpty && !supabaseAnonKey.isEmpty
+        print("🔧 SupabaseConfig.isConfigured: \(configured)")
+        print("  URL: \(supabaseURL.isEmpty ? "empty" : "set")")
+        print("  Key: \(supabaseAnonKey.isEmpty ? "empty" : "set")")
+        return configured
     }
     
     // MARK: - Error Types

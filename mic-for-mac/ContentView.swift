@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var showingVeterinaryForm = false
     @State private var selectedDogsForConsultation: Set<UUID> = []
     @State private var visitPurpose: String = ""
+    @State private var showingDebugInfo = false
     
     var body: some View {
         NavigationView {
@@ -59,6 +60,9 @@ struct ContentView: View {
                 // After form submission, start recording
                 startRecording()
             }
+        }
+        .sheet(isPresented: $showingDebugInfo) {
+            DebugInfoView()
         }
         .alert("Process Recording", isPresented: $showingProcessingConfirmation) {
             Button("Process Now") {
@@ -255,54 +259,75 @@ struct ContentView: View {
     }
     
     private var bottomButtonsSection: some View {
-        HStack(spacing: 20) {
-            Button(action: {
-                isShowingFileManager = true
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "folder.fill")
-                    Text("Files")
+        VStack(spacing: 15) {
+            // First row: Files, Profile, Settings
+            HStack(spacing: 20) {
+                Button(action: {
+                    isShowingFileManager = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "folder.fill")
+                        Text("Files")
+                    }
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
                 }
-                .foregroundColor(.blue)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.blue, lineWidth: 1)
-                )
+                .buttonStyle(PlainButtonStyle())
+                
+                Button(action: {
+                    isShowingProfile = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.circle.fill")
+                        Text("Profile")
+                    }
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Button(action: {
+                    isShowingSettings = true
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "gear")
+                        Text("Settings")
+                    }
+                    .foregroundColor(.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.blue, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
             
+            // Second row: Debug button (full width)
             Button(action: {
-                isShowingProfile = true
+                showDebugInfo()
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "person.circle.fill")
-                    Text("Profile")
+                    Image(systemName: "info.circle")
+                    Text("Debug Supabase Configuration")
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.blue, lineWidth: 1)
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            Button(action: {
-                isShowingSettings = true
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "gear")
-                    Text("Settings")
-                }
-                .foregroundColor(.blue)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: 22)
-                        .stroke(Color.blue, lineWidth: 1)
+                        .fill(Color.orange)
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -310,6 +335,10 @@ struct ContentView: View {
     }
     
     // MARK: - Actions
+    private func showDebugInfo() {
+        showingDebugInfo = true
+    }
+    
     private func startRecording() {
         audioRecorder.startRecording()
     }
@@ -420,6 +449,54 @@ struct ContentView: View {
         pendingRecordingURL = nil
         selectedDogsForConsultation = []
         visitPurpose = ""
+    }
+}
+
+struct DebugInfoView: View {
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Debug Information")
+                    .font(.title)
+                    .padding()
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Supabase Configuration:")
+                        .font(.headline)
+                    
+                    Text("URL: \(SupabaseConfig.shared.supabaseURL.isEmpty ? "Not set" : "Set")")
+                    Text("Key: \(SupabaseConfig.shared.supabaseAnonKey.isEmpty ? "Not set" : "Set")")
+                    Text("Configured: \(SupabaseConfig.shared.isConfigured ? "Yes" : "No")")
+                    
+                    Divider()
+                    
+                    Text("Environment Variables:")
+                        .font(.headline)
+                    
+                    Text("SUPABASE_URL: \(EnvironmentConfig.shared.supabaseURL ?? "nil")")
+                    Text("SUPABASE_ANON_KEY: \(EnvironmentConfig.shared.supabaseAnonKey?.prefix(20) ?? "nil")...")
+                    
+                    Divider()
+                    
+                    Text("UserDefaults Fallback:")
+                        .font(.headline)
+                    
+                    let userDefaultsURL = UserDefaults.standard.string(forKey: "SUPABASE_URL") ?? "nil"
+                    let userDefaultsKey = UserDefaults.standard.string(forKey: "SUPABASE_ANON_KEY")?.prefix(20) ?? "nil"
+                    
+                    Text("URL: \(userDefaultsURL)")
+                    Text("Key: \(userDefaultsKey)...")
+                }
+                .padding()
+                
+                Spacer()
+            }
+            .navigationTitle("Debug Info")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Done") {
+                // This will be handled by the sheet dismissal
+            })
+        }
     }
 }
 
