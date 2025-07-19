@@ -55,29 +55,28 @@ class ProfileManager: ObservableObject {
             return
         }
         
-        // TODO: Re-enable authentication check after testing
+        // TEMPORARY: For testing without authentication
+        // Check authentication (temporarily disabled for testing)
         // guard supabaseService.isAuthenticated,
         //       let currentUser = supabaseService.currentUser else {
         //     print("⚠️ Not authenticated with Supabase - cannot save dogs")
+        //     print("  Please sign in to your account to sync with Supabase")
         //     return
         // }
         
-        print("🔧 Testing Supabase connection without authentication...")
+        print("🧪 TESTING MODE: Saving dogs to Supabase without authentication")
         
         do {
             // Save each dog profile to Supabase
             for dog in multiDogProfile.dogs {
-                // Convert DogProfile to Supabase format
-                var supabaseDog = dog.supabaseFormat
-                // TODO: Set user_id when authentication is implemented
-                // supabaseDog["user_id"] = currentUser.id.uuidString
-                
-                // Create or update the dog profile in Supabase
                 try await supabaseService.createDogProfile(dog)
                 print("✅ Dog '\(dog.name)' saved to Supabase")
             }
         } catch {
             print("❌ Error saving dogs to Supabase: \(error)")
+            if let supabaseError = error as? SupabaseError {
+                print("  Supabase error: \(supabaseError.localizedDescription)")
+            }
         }
     }
     
@@ -87,29 +86,28 @@ class ProfileManager: ObservableObject {
             return
         }
         
-        // TODO: Re-enable authentication check after testing
+        // TEMPORARY: For testing without authentication
+        // Check authentication (temporarily disabled for testing)
         // guard supabaseService.isAuthenticated,
         //       let currentUser = supabaseService.currentUser else {
         //     print("⚠️ Not authenticated with Supabase - cannot save owners")
+        //     print("  Please sign in to your account to sync with Supabase")
         //     return
         // }
         
-        print("🔧 Testing Supabase connection without authentication...")
+        print("🧪 TESTING MODE: Saving owners to Supabase without authentication")
         
         do {
             // Save each owner profile to Supabase
             for owner in multiOwnerProfile.owners {
-                // Convert OwnerProfile to Supabase format
-                var supabaseOwner = owner.supabaseFormat
-                // TODO: Set user_id when authentication is implemented
-                // supabaseOwner["user_id"] = currentUser.id.uuidString
-                
-                // Create or update the owner profile in Supabase
                 try await supabaseService.createOwnerProfile(owner)
                 print("✅ Owner '\(owner.fullName)' saved to Supabase")
             }
         } catch {
             print("❌ Error saving owners to Supabase: \(error)")
+            if let supabaseError = error as? SupabaseError {
+                print("  Supabase error: \(supabaseError.localizedDescription)")
+            }
         }
     }
     

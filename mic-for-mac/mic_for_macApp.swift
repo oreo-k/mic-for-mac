@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct mic_for_macApp: App {
+    @StateObject private var supabaseService = SupabaseService.shared
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

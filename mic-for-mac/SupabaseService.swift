@@ -164,10 +164,40 @@ class SupabaseService: ObservableObject {
         print("  Table: \(SupabaseConfig.Tables.dogProfiles)")
         print("  Is authenticated: \(isAuthenticated)")
         
+        // TEMPORARY: For testing without authentication
+        let testUserId = UUID() // Generate a test user ID
+        
+        // Check authentication (temporarily disabled for testing)
+        // guard isAuthenticated, let currentUser = currentUser else {
+        //     throw SupabaseError.notAuthenticated
+        // }
+        
+        print("🧪 TESTING MODE: Using test user ID: \(testUserId)")
+        
         do {
+            // Convert DogProfile to proper Supabase format
+            let supabaseData = SupabaseDogProfile(
+                id: profile.id.uuidString,
+                userId: testUserId.uuidString, // Use test user ID
+                name: profile.name,
+                breed: profile.breed,
+                dateOfBirth: ISO8601DateFormatter().string(from: profile.dateOfBirth),
+                weight: profile.weight,
+                color: profile.color,
+                microchipNumber: profile.microchipNumber,
+                medicalConditions: profile.medicalHistory.map { "\($0.date): \($0.diagnosis)" },
+                medications: profile.currentMedications.map { "\($0.name) - \($0.dosage)" },
+                allergies: profile.allergies,
+                specialNeeds: profile.specialNeeds,
+                photoUrl: profile.photoURL,
+                notes: profile.notes,
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                updatedAt: ISO8601DateFormatter().string(from: Date())
+            )
+            
             let response = try await client
                 .from(SupabaseConfig.Tables.dogProfiles)
-                .insert(profile)
+                .insert(supabaseData)
                 .execute()
             
             print("✅ Dog profile created successfully in Supabase")
@@ -177,7 +207,6 @@ class SupabaseService: ObservableObject {
             print("❌ Failed to create dog profile in Supabase")
             print("  Error: \(error)")
             print("  Error type: \(type(of: error))")
-            
             print("  Error description: \(error.localizedDescription)")
             
             throw error
@@ -213,10 +242,50 @@ class SupabaseService: ObservableObject {
     
     // Owner Profiles
     func createOwnerProfile(_ profile: OwnerProfile) async throws {
-        try await client
-            .from(SupabaseConfig.Tables.ownerProfiles)
-            .insert(profile)
-            .execute()
+        print("🔧 SupabaseService: Creating owner profile...")
+        print("  Owner: \(profile.fullName)")
+        print("  Table: \(SupabaseConfig.Tables.ownerProfiles)")
+        print("  Is authenticated: \(isAuthenticated)")
+        
+        // TEMPORARY: For testing without authentication
+        let testUserId = UUID() // Generate a test user ID
+        
+        // Check authentication (temporarily disabled for testing)
+        // guard isAuthenticated, let currentUser = currentUser else {
+        //     throw SupabaseError.notAuthenticated
+        // }
+        
+        print("🧪 TESTING MODE: Using test user ID: \(testUserId)")
+        
+        do {
+            // Convert OwnerProfile to proper Supabase format
+            let supabaseData = SupabaseOwnerProfile(
+                id: profile.id.uuidString,
+                userId: testUserId.uuidString, // Use test user ID
+                fullName: profile.fullName,
+                phone: profile.phone,
+                address: "\(profile.address.street), \(profile.address.city), \(profile.address.state) \(profile.address.zipCode)",
+                emergencyContact: "\(profile.emergencyContact.name) - \(profile.emergencyContact.phone)",
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                updatedAt: ISO8601DateFormatter().string(from: Date())
+            )
+            
+            let response = try await client
+                .from(SupabaseConfig.Tables.ownerProfiles)
+                .insert(supabaseData)
+                .execute()
+            
+            print("✅ Owner profile created successfully in Supabase")
+            print("  Response: \(response)")
+            
+        } catch {
+            print("❌ Failed to create owner profile in Supabase")
+            print("  Error: \(error)")
+            print("  Error type: \(type(of: error))")
+            print("  Error description: \(error.localizedDescription)")
+            
+            throw error
+        }
     }
     
     func getOwnerProfiles(userId: UUID) async throws -> [OwnerProfile] {
@@ -427,6 +496,67 @@ struct UserProfile: Codable, Identifiable {
     }
 }
 
+// MARK: - Supabase Data Models (Encodable)
+struct SupabaseDogProfile: Encodable {
+    let id: String
+    let userId: String
+    let name: String
+    let breed: String?
+    let dateOfBirth: String?
+    let weight: Double?
+    let color: String?
+    let microchipNumber: String?
+    let medicalConditions: [String]?
+    let medications: [String]?
+    let allergies: [String]?
+    let specialNeeds: String?
+    let photoUrl: String?
+    let notes: String?
+    let createdAt: String
+    let updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case name
+        case breed
+        case dateOfBirth = "date_of_birth"
+        case weight
+        case color
+        case microchipNumber = "microchip_number"
+        case medicalConditions = "medical_conditions"
+        case medications
+        case allergies
+        case specialNeeds = "special_needs"
+        case photoUrl = "photo_url"
+        case notes
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+struct SupabaseOwnerProfile: Encodable {
+    let id: String
+    let userId: String
+    let fullName: String
+    let phone: String?
+    let address: String?
+    let emergencyContact: String?
+    let createdAt: String
+    let updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case fullName = "full_name"
+        case phone
+        case address
+        case emergencyContact = "emergency_contact"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
 // Extension to convert existing models to Supabase format
 extension DogProfile {
     var supabaseFormat: [String: Any] {
@@ -495,5 +625,26 @@ extension VeterinaryContext {
             "selected_dogs": Array(selectedDogs).map { $0.uuidString },
             "visit_purpose": visitPurpose
         ]
+    }
+} 
+
+// MARK: - Error Types
+enum SupabaseError: Error, LocalizedError {
+    case notAuthenticated
+    case configurationError
+    case networkError
+    case databaseError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .notAuthenticated:
+            return "User is not authenticated. Please sign in first."
+        case .configurationError:
+            return "Supabase configuration is invalid. Please check your settings."
+        case .networkError:
+            return "Network error occurred. Please check your internet connection."
+        case .databaseError(let message):
+            return "Database error: \(message)"
+        }
     }
 } 
