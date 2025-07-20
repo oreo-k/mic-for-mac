@@ -26,6 +26,10 @@ class SupabaseService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    // MARK: - Testing Properties
+    // TEMPORARY: For testing without authentication - persistent test user ID
+    private let persistentTestUserId = UUID() // Same user ID for all test data
+    
     // MARK: - Initialization
     private init() {
         // Initialize with configuration
