@@ -25,16 +25,28 @@ class SupabaseService: ObservableObject {
     @Published var currentUser: Auth.User?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var currentUserProfile: UserProfile?
+    @Published var isAdmin = false
     
     // MARK: - Testing Properties
     // TEMPORARY: For testing without authentication - persistent test user ID
     private let persistentTestUserId = UUID() // Same user ID for all test data
     
+    // MARK: - Admin Configuration
+    private let adminEmails = ["test@gmail.com"] // Your admin email
+    private let adminCode = "test_admin_test" // Your admin code
+    
     // MARK: - Initialization
     private init() {
+        print("🔧 Initializing SupabaseService...")
+        print("  URL: \(SupabaseConfig.shared.supabaseURL)")
+        print("  Key: \(SupabaseConfig.shared.supabaseAnonKey.isEmpty ? "empty" : "set")")
+        print("  Configured: \(SupabaseConfig.shared.isConfigured)")
+        
         // Initialize with configuration
         guard let url = URL(string: SupabaseConfig.shared.supabaseURL),
               !SupabaseConfig.shared.supabaseAnonKey.isEmpty else {
+            print("❌ Supabase configuration is missing!")
             fatalError("Supabase configuration is missing")
         }
         
@@ -43,12 +55,14 @@ class SupabaseService: ObservableObject {
             supabaseKey: SupabaseConfig.shared.supabaseAnonKey
         )
         
+        print("✅ SupabaseService initialized successfully")
+        
         // Check initial authentication state
         checkAuthenticationState()
     }
     
     // MARK: - Authentication Methods
-    func signUp(email: String, password: String) async throws -> Auth.User {
+    func signUp(email: String, password: String, adminCode: String? = nil) async throws -> Auth.User {
         isLoading = true
         defer { isLoading = false }
         
@@ -58,9 +72,36 @@ class SupabaseService: ObservableObject {
                 password: password
             )
             
-            await MainActor.run {
-                self.currentUser = response.user
-                self.isAuthenticated = true
+            // The database trigger will automatically create the user profile
+            // We just need to wait a moment for the trigger to execute
+            try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+            
+            // Load the user profile that was created by the trigger
+            if let userProfile = try await getUserProfile(userId: response.user.id) {
+                await MainActor.run {
+                    self.currentUser = response.user
+                    self.currentUserProfile = userProfile
+                    self.isAuthenticated = true
+                    self.isAdmin = userProfile.role == "admin"
+                }
+            } else {
+                // Fallback: create user profile manually if trigger failed
+                let role = determineUserRole(email: email, adminCode: adminCode)
+                let userProfile = UserProfile(
+                    userId: response.user.id,
+                    email: email,
+                    role: role,
+                    createdAt: Date(),
+                    updatedAt: Date()
+                )
+                try await createUserProfile(userProfile)
+                
+                await MainActor.run {
+                    self.currentUser = response.user
+                    self.currentUserProfile = userProfile
+                    self.isAuthenticated = true
+                    self.isAdmin = role == "admin"
+                }
             }
             
             return response.user
@@ -70,6 +111,21 @@ class SupabaseService: ObservableObject {
             }
             throw error
         }
+    }
+    
+    // MARK: - Admin Detection
+    private func determineUserRole(email: String, adminCode: String?) -> String {
+        // Check if email is in admin list
+        if adminEmails.contains(email) {
+            return "admin"
+        }
+        
+        // Check if admin code matches
+        if let code = adminCode, code == self.adminCode {
+            return "admin"
+        }
+        
+        return "user"
     }
     
     func signIn(email: String, password: String) async throws -> Auth.User {
@@ -82,9 +138,32 @@ class SupabaseService: ObservableObject {
                 password: password
             )
             
-            await MainActor.run {
-                self.currentUser = response.user
-                self.isAuthenticated = true
+            // Load user profile to get role
+            if let userProfile = try await getUserProfile(userId: response.user.id) {
+                await MainActor.run {
+                    self.currentUser = response.user
+                    self.currentUserProfile = userProfile
+                    self.isAuthenticated = true
+                    self.isAdmin = userProfile.role == "admin"
+                }
+            } else {
+                // Create user profile if it doesn't exist (fallback)
+                let role = determineUserRole(email: email, adminCode: nil)
+                let userProfile = UserProfile(
+                    userId: response.user.id,
+                    email: email,
+                    role: role,
+                    createdAt: Date(),
+                    updatedAt: Date()
+                )
+                try await createUserProfile(userProfile)
+                
+                await MainActor.run {
+                    self.currentUser = response.user
+                    self.currentUserProfile = userProfile
+                    self.isAuthenticated = true
+                    self.isAdmin = role == "admin"
+                }
             }
             
             return response.user
@@ -146,7 +225,7 @@ class SupabaseService: ObservableObject {
         let response: [UserProfile] = try await client
             .from(SupabaseConfig.Tables.userProfiles)
             .select()
-            .eq("id", value: userId)
+            .eq("user_id", value: userId)
             .execute()
             .value
         
@@ -157,7 +236,7 @@ class SupabaseService: ObservableObject {
         try await client
             .from(SupabaseConfig.Tables.userProfiles)
             .update(profile)
-            .eq("id", value: profile.id)
+            .eq("user_id", value: profile.userId)
             .execute()
     }
     
@@ -168,21 +247,20 @@ class SupabaseService: ObservableObject {
         print("  Table: \(SupabaseConfig.Tables.dogProfiles)")
         print("  Is authenticated: \(isAuthenticated)")
         
-        // TEMPORARY: For testing without authentication
-        let testUserId = UUID() // Generate a test user ID
+        // Get the current user ID
+        guard isAuthenticated, let currentUser = currentUser else {
+            throw SupabaseError.notAuthenticated
+        }
         
-        // Check authentication (temporarily disabled for testing)
-        // guard isAuthenticated, let currentUser = currentUser else {
-        //     throw SupabaseError.notAuthenticated
-        // }
+        let userId = currentUser.id
         
-        print("🧪 TESTING MODE: Using test user ID: \(testUserId)")
+        print("✅ Using authenticated user ID: \(userId)")
         
         do {
             // Convert DogProfile to proper Supabase format
             let supabaseData = SupabaseDogProfile(
-                id: profile.id.uuidString,
-                userId: testUserId.uuidString, // Use test user ID
+                dogId: profile.id.uuidString,
+                userId: userId.uuidString, // Use real user ID
                 name: profile.name,
                 breed: profile.breed,
                 dateOfBirth: ISO8601DateFormatter().string(from: profile.dateOfBirth),
@@ -195,6 +273,7 @@ class SupabaseService: ObservableObject {
                 specialNeeds: profile.specialNeeds,
                 photoUrl: profile.photoURL,
                 notes: profile.notes,
+                sharedWithAdmin: false, // Default to not shared
                 createdAt: ISO8601DateFormatter().string(from: Date()),
                 updatedAt: ISO8601DateFormatter().string(from: Date())
             )
@@ -251,25 +330,25 @@ class SupabaseService: ObservableObject {
         print("  Table: \(SupabaseConfig.Tables.ownerProfiles)")
         print("  Is authenticated: \(isAuthenticated)")
         
-        // TEMPORARY: For testing without authentication
-        let testUserId = UUID() // Generate a test user ID
+        // Get the current user ID
+        guard isAuthenticated, let currentUser = currentUser else {
+            throw SupabaseError.notAuthenticated
+        }
         
-        // Check authentication (temporarily disabled for testing)
-        // guard isAuthenticated, let currentUser = currentUser else {
-        //     throw SupabaseError.notAuthenticated
-        // }
+        let userId = currentUser.id
         
-        print("🧪 TESTING MODE: Using test user ID: \(testUserId)")
+        print("✅ Using authenticated user ID: \(userId)")
         
         do {
             // Convert OwnerProfile to proper Supabase format
             let supabaseData = SupabaseOwnerProfile(
-                id: profile.id.uuidString,
-                userId: testUserId.uuidString, // Use test user ID
+                ownerId: profile.id.uuidString,
+                userId: userId.uuidString, // Use real user ID
                 fullName: profile.fullName,
                 phone: profile.phone,
                 address: "\(profile.address.street), \(profile.address.city), \(profile.address.state) \(profile.address.zipCode)",
                 emergencyContact: "\(profile.emergencyContact.name) - \(profile.emergencyContact.phone)",
+                sharedWithAdmin: false, // Default to not shared
                 createdAt: ISO8601DateFormatter().string(from: Date()),
                 updatedAt: ISO8601DateFormatter().string(from: Date())
             )
@@ -487,22 +566,25 @@ class SupabaseService: ObservableObject {
 // MARK: - Data Models for Supabase
 
 struct UserProfile: Codable, Identifiable {
-    let id: UUID
+    let userId: UUID
     let email: String
+    let role: String
     var fullName: String?
     var avatarUrl: String?
     let createdAt: Date
     var updatedAt: Date
     
+    var id: UUID { userId } // For Identifiable conformance
+    
     enum CodingKeys: String, CodingKey {
-        case id, email, fullName = "full_name", avatarUrl = "avatar_url"
+        case userId = "user_id", email, role, fullName = "full_name", avatarUrl = "avatar_url"
         case createdAt = "created_at", updatedAt = "updated_at"
     }
 }
 
 // MARK: - Supabase Data Models (Encodable)
 struct SupabaseDogProfile: Encodable {
-    let id: String
+    let dogId: String
     let userId: String
     let name: String
     let breed: String?
@@ -516,11 +598,12 @@ struct SupabaseDogProfile: Encodable {
     let specialNeeds: String?
     let photoUrl: String?
     let notes: String?
+    let sharedWithAdmin: Bool
     let createdAt: String
     let updatedAt: String
     
     enum CodingKeys: String, CodingKey {
-        case id
+        case dogId = "dog_id"
         case userId = "user_id"
         case name
         case breed
@@ -534,28 +617,31 @@ struct SupabaseDogProfile: Encodable {
         case specialNeeds = "special_needs"
         case photoUrl = "photo_url"
         case notes
+        case sharedWithAdmin = "shared_with_admin"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
 }
 
 struct SupabaseOwnerProfile: Encodable {
-    let id: String
+    let ownerId: String
     let userId: String
     let fullName: String
     let phone: String?
     let address: String?
     let emergencyContact: String?
+    let sharedWithAdmin: Bool
     let createdAt: String
     let updatedAt: String
     
     enum CodingKeys: String, CodingKey {
-        case id
+        case ownerId = "owner_id"
         case userId = "user_id"
         case fullName = "full_name"
         case phone
         case address
         case emergencyContact = "emergency_contact"
+        case sharedWithAdmin = "shared_with_admin"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }

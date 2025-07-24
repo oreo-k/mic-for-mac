@@ -1,4 +1,4 @@
--- Complete Supabase Schema for mic-for-mac
+-- Complete Supabase Schema for mic-for-mac (FIXED VERSION)
 -- This schema matches exactly the fields sent by our Swift code
 
 -- Drop existing tables to ensure clean schema
@@ -106,14 +106,6 @@ CREATE INDEX idx_user_profiles_role ON user_profiles(role);
 CREATE INDEX idx_dog_profiles_shared_with_admin ON dog_profiles(shared_with_admin);
 CREATE INDEX idx_owner_profiles_shared_with_admin ON owner_profiles(shared_with_admin);
 
--- TEMPORARILY DISABLE RLS FOR TESTING
--- ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
--- ALTER TABLE owner_profiles DISABLE ROW LEVEL SECURITY;
--- ALTER TABLE dog_profiles DISABLE ROW LEVEL SECURITY;
--- ALTER TABLE audio_files DISABLE ROW LEVEL SECURITY;
--- ALTER TABLE veterinary_contexts DISABLE ROW LEVEL SECURITY;
--- ALTER TABLE consultations DISABLE ROW LEVEL SECURITY;
-
 -- Enable RLS on all tables
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE owner_profiles ENABLE ROW LEVEL SECURITY;
@@ -167,7 +159,7 @@ CREATE POLICY "Admins can view shared owner profiles" ON owner_profiles
         shared_with_admin = TRUE AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -177,7 +169,7 @@ CREATE POLICY "Admins can update shared owner profiles" ON owner_profiles
         shared_with_admin = TRUE AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -204,7 +196,7 @@ CREATE POLICY "Admins can view shared dog profiles" ON dog_profiles
         shared_with_admin = TRUE AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -214,7 +206,7 @@ CREATE POLICY "Admins can update shared dog profiles" ON dog_profiles
         shared_with_admin = TRUE AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -240,11 +232,11 @@ CREATE POLICY "Admins can view audio files for shared dogs" ON audio_files
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM dog_profiles 
-            WHERE id = audio_files.dog_id AND shared_with_admin = TRUE
+            WHERE dog_id = audio_files.dog_id AND shared_with_admin = TRUE
         ) AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -270,11 +262,11 @@ CREATE POLICY "Admins can view veterinary contexts for shared dogs" ON veterinar
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM dog_profiles 
-            WHERE id = veterinary_contexts.dog_id AND shared_with_admin = TRUE
+            WHERE dog_id = veterinary_contexts.dog_id AND shared_with_admin = TRUE
         ) AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -300,11 +292,11 @@ CREATE POLICY "Admins can view consultations for shared dogs" ON consultations
     FOR SELECT USING (
         EXISTS (
             SELECT 1 FROM dog_profiles 
-            WHERE id = consultations.dog_id AND shared_with_admin = TRUE
+            WHERE dog_id = consultations.dog_id AND shared_with_admin = TRUE
         ) AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -313,11 +305,11 @@ CREATE POLICY "Admins can update consultations for shared dogs" ON consultations
     FOR UPDATE USING (
         EXISTS (
             SELECT 1 FROM dog_profiles 
-            WHERE id = consultations.dog_id AND shared_with_admin = TRUE
+            WHERE dog_id = consultations.dog_id AND shared_with_admin = TRUE
         ) AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     );
 
@@ -326,10 +318,10 @@ CREATE POLICY "Admins can insert consultations for shared dogs" ON consultations
     FOR INSERT WITH CHECK (
         EXISTS (
             SELECT 1 FROM dog_profiles 
-            WHERE id = consultations.dog_id AND shared_with_admin = TRUE
+            WHERE dog_id = consultations.dog_id AND shared_with_admin = TRUE
         ) AND
         EXISTS (
             SELECT 1 FROM user_profiles 
-            WHERE id = auth.uid()::text AND role = 'admin'
+            WHERE user_id = auth.uid()::text AND role = 'admin'
         )
     ); 

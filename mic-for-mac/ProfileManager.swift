@@ -55,16 +55,15 @@ class ProfileManager: ObservableObject {
             return
         }
         
-        // TEMPORARY: For testing without authentication
-        // Check authentication (temporarily disabled for testing)
-        // guard supabaseService.isAuthenticated,
-        //       let currentUser = supabaseService.currentUser else {
-        //     print("⚠️ Not authenticated with Supabase - cannot save dogs")
-        //     print("  Please sign in to your account to sync with Supabase")
-        //     return
-        // }
+        // Check authentication
+        guard supabaseService.isAuthenticated,
+              let currentUser = supabaseService.currentUser else {
+            print("⚠️ Not authenticated with Supabase - cannot save dogs")
+            print("  Please sign in to your account to sync with Supabase")
+            return
+        }
         
-        print("🧪 TESTING MODE: Saving dogs to Supabase without authentication")
+        print("✅ Saving dogs to Supabase with authenticated user: \(currentUser.email ?? "Unknown")")
         
         do {
             // Save each dog profile to Supabase
@@ -86,16 +85,15 @@ class ProfileManager: ObservableObject {
             return
         }
         
-        // TEMPORARY: For testing without authentication
-        // Check authentication (temporarily disabled for testing)
-        // guard supabaseService.isAuthenticated,
-        //       let currentUser = supabaseService.currentUser else {
-        //     print("⚠️ Not authenticated with Supabase - cannot save owners")
-        //     print("  Please sign in to your account to sync with Supabase")
-        //     return
-        // }
+        // Check authentication
+        guard supabaseService.isAuthenticated,
+              let currentUser = supabaseService.currentUser else {
+            print("⚠️ Not authenticated with Supabase - cannot save owners")
+            print("  Please sign in to your account to sync with Supabase")
+            return
+        }
         
-        print("🧪 TESTING MODE: Saving owners to Supabase without authentication")
+        print("✅ Saving owners to Supabase with authenticated user: \(currentUser.email ?? "Unknown")")
         
         do {
             // Save each owner profile to Supabase

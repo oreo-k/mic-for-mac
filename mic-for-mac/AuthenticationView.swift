@@ -5,6 +5,7 @@ struct AuthenticationView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
+    @State private var adminCode = ""
     @State private var isSignUp = false
     @State private var showingAlert = false
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +57,16 @@ struct AuthenticationView: View {
                             SecureField("Confirm your password", text: $confirmPassword)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                         }
+                        
+                        // Admin code field (optional, only for sign up)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Admin Code (Optional)")
+                                .font(.headline)
+                            TextField("Enter admin code if you have one", text: $adminCode)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -74,11 +85,22 @@ struct AuthenticationView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(isFormValid ? Color.blue : Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
                     .disabled(supabaseService.isLoading || !isFormValid)
+                    .onTapGesture {
+                        if !isFormValid {
+                            print("🔍 Form validation failed:")
+                            print("  Email valid: \(!email.isEmpty && email.contains("@"))")
+                            print("  Password valid: \(password.count >= 6)")
+                            print("  Password length: \(password.count)")
+                            if isSignUp {
+                                print("  Passwords match: \(password == confirmPassword)")
+                            }
+                        }
+                    }
                     
                     Button(action: { isSignUp.toggle() }) {
                         Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
@@ -120,14 +142,28 @@ struct AuthenticationView: View {
     private func performAuthentication() {
         guard isFormValid else { return }
         
+        print("🔐 Starting authentication...")
+        print("  Email: \(email)")
+        print("  Password length: \(password.count)")
+        print("  Admin code: \(adminCode.isEmpty ? "none" : adminCode)")
+        
         Task {
             do {
                 if isSignUp {
-                    _ = try await supabaseService.signUp(email: email, password: password)
+                    let code = adminCode.isEmpty ? nil : adminCode
+                    print("📝 Attempting sign up...")
+                    _ = try await supabaseService.signUp(email: email, password: password, adminCode: code)
+                    print("✅ Sign up successful!")
                 } else {
+                    print("🔑 Attempting sign in...")
                     _ = try await supabaseService.signIn(email: email, password: password)
+                    print("✅ Sign in successful!")
                 }
             } catch {
+                print("❌ Authentication error: \(error)")
+                print("❌ Error type: \(type(of: error))")
+                print("❌ Error description: \(error.localizedDescription)")
+                
                 await MainActor.run {
                     showingAlert = true
                 }

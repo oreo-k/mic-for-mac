@@ -13,7 +13,11 @@ struct mic_for_macApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if supabaseService.isAuthenticated {
+                ContentView()
+            } else {
+                AuthenticationView()
+            }
         }
     }
 }
