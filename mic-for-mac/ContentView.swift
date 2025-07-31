@@ -400,26 +400,59 @@ struct ContentView: View {
     private func saveAsPending() {
         guard let recordingURL = pendingRecordingURL else { return }
         
-        // Create a pending audio file
-        let pendingFile = AudioFile(
-            url: recordingURL,
-            filename: recordingURL.lastPathComponent,
-            date: Date(),
-            duration: 0.0, // We'll get the actual duration when processing
-            conversationType: selectedConversationType,
-            language: selectedLanguage,
-            veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
-                selectedDogs: selectedDogsForConsultation,
-                visitPurpose: visitPurpose
-            ) : nil
-        )
-        
-        fileManager.addFile(pendingFile)
-        
-        // Clear the pending URL and veterinary context
-        pendingRecordingURL = nil
-        selectedDogsForConsultation = []
-        visitPurpose = ""
+        Task {
+            do {
+                // Get detailed audio file information for debugging
+                let audioInfo = try await apiService.getAudioFileInfo(from: recordingURL)
+                
+                await MainActor.run {
+                    // Create a pending audio file with actual duration
+                    let pendingFile = AudioFile(
+                        url: recordingURL,
+                        filename: recordingURL.lastPathComponent,
+                        date: Date(),
+                        duration: audioInfo.duration,
+                        conversationType: selectedConversationType,
+                        language: selectedLanguage,
+                        veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
+                            selectedDogs: selectedDogsForConsultation,
+                            visitPurpose: visitPurpose
+                        ) : nil
+                    )
+                    
+                    fileManager.addFile(pendingFile)
+                    
+                    // Clear the pending URL and veterinary context
+                    pendingRecordingURL = nil
+                    selectedDogsForConsultation = []
+                    visitPurpose = ""
+                }
+            } catch {
+                print("Error getting audio duration: \(error.localizedDescription)")
+                // Fallback to 0.0 if we can't get the duration
+                await MainActor.run {
+                    let pendingFile = AudioFile(
+                        url: recordingURL,
+                        filename: recordingURL.lastPathComponent,
+                        date: Date(),
+                        duration: 0.0,
+                        conversationType: selectedConversationType,
+                        language: selectedLanguage,
+                        veterinaryContext: selectedConversationType == .veterinary ? VeterinaryContext(
+                            selectedDogs: selectedDogsForConsultation,
+                            visitPurpose: visitPurpose
+                        ) : nil
+                    )
+                    
+                    fileManager.addFile(pendingFile)
+                    
+                    // Clear the pending URL and veterinary context
+                    pendingRecordingURL = nil
+                    selectedDogsForConsultation = []
+                    visitPurpose = ""
+                }
+            }
+        }
     }
 }
 

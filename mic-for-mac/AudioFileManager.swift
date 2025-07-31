@@ -17,9 +17,13 @@ class AudioFileManager: ObservableObject {
     }
     
     func updatePendingFile(with processedFile: AudioFile) {
-        if let index = audioFiles.firstIndex(where: { $0.id == processedFile.id }) {
+        if let index = audioFiles.firstIndex(where: { $0.url == processedFile.url }) {
             audioFiles[index] = processedFile
             saveAudioFiles()
+            print("Successfully updated pending file with URL: \(processedFile.url)")
+        } else {
+            print("Warning: Could not find pending file with URL: \(processedFile.url) to update")
+            print("Available file URLs: \(audioFiles.map { $0.url })")
         }
     }
     

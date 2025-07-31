@@ -138,20 +138,26 @@ struct AudioFileManagementView: View {
     }
     
     private func processAudioFile(_ audioFile: AudioFile) {
-        guard audioFile.isPending else { return }
+        guard audioFile.isPending else { 
+            print("File is not pending, cannot process: \(audioFile.id)")
+            return 
+        }
         
+        print("Starting to process pending file: \(audioFile.id)")
         processingFileId = audioFile.id
         
         Task {
             do {
                 // Get actual audio duration
                 let actualDuration = try await apiService.getAudioDuration(from: audioFile.url)
+                print("Got actual duration: \(actualDuration) seconds")
                 
                 // Transcribe with Whisper
                 let transcriptionResult = try await apiService.transcribeWithWhisper(
                     audioURL: audioFile.url,
                     language: audioFile.language
                 )
+                print("Transcription completed, cost: \(transcriptionResult.cost)")
                 
                 // Get profile information for enhanced summaries
                 let profileManager = ProfileManager()
@@ -166,6 +172,7 @@ struct AudioFileManagementView: View {
                     multiDogProfile: multiDogProfile,
                     multiOwnerProfile: multiOwnerProfile
                 )
+                print("Summarization completed, cost: \(summarizationResult.cost)")
                 
                 // Create processed file
                 let processedFile = AudioFile(
@@ -179,16 +186,21 @@ struct AudioFileManagementView: View {
                     language: audioFile.language,
                     transcriptionCost: transcriptionResult.cost,
                     summarizationCost: summarizationResult.cost,
-                    tokenCount: summarizationResult.tokenCount
+                    tokenCount: summarizationResult.tokenCount,
+                    veterinaryContext: audioFile.veterinaryContext
                 )
+                
+                print("Created processed file with ID: \(processedFile.id)")
                 
                 // Update the file in the manager
                 await MainActor.run {
                     fileManager.updatePendingFile(with: processedFile)
                     processingFileId = nil
+                    print("Processing completed successfully")
                 }
                 
             } catch {
+                print("Error processing file: \(error.localizedDescription)")
                 await MainActor.run {
                     processingErrorMessage = error.localizedDescription
                     showingProcessingAlert = true

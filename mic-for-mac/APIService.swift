@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 
 class APIService: ObservableObject {
     // MARK: - Configuration
@@ -149,14 +150,23 @@ class APIService: ObservableObject {
     
     // MARK: - Helper Methods
     func getAudioDuration(from url: URL) async throws -> TimeInterval {
-        // For now, we'll estimate duration based on file size
-        // In a production app, you might want to use AVAsset to get exact duration
-        let fileSize = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64 ?? 0
+        // Use AVAsset to get the actual audio duration
+        let asset = AVAsset(url: url)
+        let duration = try await asset.load(.duration)
+        let seconds = CMTimeGetSeconds(duration)
+        print("Audio file duration: \(seconds) seconds")
+        return seconds
+    }
+    
+    // Debug method to get detailed audio file information
+    func getAudioFileInfo(from url: URL) async throws -> (duration: TimeInterval, fileSize: Int64, exists: Bool) {
+        let fileManager = FileManager.default
+        let exists = fileManager.fileExists(atPath: url.path)
+        let fileSize = exists ? (try fileManager.attributesOfItem(atPath: url.path)[.size] as? Int64 ?? 0) : 0
+        let duration = try await getAudioDuration(from: url)
         
-        // Rough estimation: 1MB ≈ 1 minute of audio at typical quality
-        let estimatedDuration = Double(fileSize) / (1024 * 1024) * 60
-        
-        return estimatedDuration
+        print("Audio file info - Exists: \(exists), Size: \(fileSize) bytes, Duration: \(duration) seconds")
+        return (duration: duration, fileSize: fileSize, exists: exists)
     }
 }
 
