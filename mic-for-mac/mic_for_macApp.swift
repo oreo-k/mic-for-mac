@@ -13,7 +13,9 @@ struct mic_for_macApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if supabaseService.isAuthenticated {
+            if !SupabaseConfig.shared.isConfigured {
+                ConfigurationValidationView()
+            } else if supabaseService.isAuthenticated {
                 ContentView()
             } else {
                 AuthenticationView()

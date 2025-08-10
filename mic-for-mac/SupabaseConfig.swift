@@ -98,10 +98,22 @@ class SupabaseConfig {
     func setDevelopmentCredentials(url: String, anonKey: String) {
         UserDefaults.standard.set(url, forKey: "SUPABASE_URL")
         UserDefaults.standard.set(anonKey, forKey: "SUPABASE_ANON_KEY")
+        UserDefaults.standard.synchronize() // Force immediate save
     }
     
     func clearDevelopmentCredentials() {
         UserDefaults.standard.removeObject(forKey: "SUPABASE_URL")
         UserDefaults.standard.removeObject(forKey: "SUPABASE_ANON_KEY")
+        UserDefaults.standard.synchronize() // Force immediate save
+    }
+    
+    // MARK: - Configuration Persistence
+    func ensureConfigurationPersisted() {
+        // If we have environment variables but no UserDefaults, save them
+        if let envURL = EnvironmentConfig.shared.supabaseURL,
+           let envKey = EnvironmentConfig.shared.supabaseAnonKey,
+           UserDefaults.standard.string(forKey: "SUPABASE_URL") == nil {
+            setDevelopmentCredentials(url: envURL, anonKey: envKey)
+        }
     }
 } 

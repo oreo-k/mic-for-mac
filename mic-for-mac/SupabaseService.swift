@@ -39,6 +39,10 @@ class SupabaseService: ObservableObject {
     // MARK: - Initialization
     private init() {
         print("🔧 Initializing SupabaseService...")
+        
+        // Ensure configuration is persisted
+        SupabaseConfig.shared.ensureConfigurationPersisted()
+        
         print("  URL: \(SupabaseConfig.shared.supabaseURL)")
         print("  Key: \(SupabaseConfig.shared.supabaseAnonKey.isEmpty ? "empty" : "set")")
         print("  Configured: \(SupabaseConfig.shared.isConfigured)")
@@ -47,7 +51,13 @@ class SupabaseService: ObservableObject {
         guard let url = URL(string: SupabaseConfig.shared.supabaseURL),
               !SupabaseConfig.shared.supabaseAnonKey.isEmpty else {
             print("❌ Supabase configuration is missing!")
-            fatalError("Supabase configuration is missing")
+            // Don't crash the app, just set authentication to false
+            self.client = SupabaseClient(
+                supabaseURL: URL(string: "https://placeholder.supabase.co")!,
+                supabaseKey: "placeholder"
+            )
+            self.isAuthenticated = false
+            return
         }
         
         self.client = SupabaseClient(
